@@ -27,7 +27,7 @@ export default function MyPolicies() {
         }
 
         const response = await fetch(
-          `http://localhost:8082/api/policies/customer/${customerId}`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8082'}/api/policies/customer/${customerId}`
         );
 
         if (!response.ok) {
