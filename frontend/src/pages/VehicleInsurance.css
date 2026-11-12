@@ -1,0 +1,344 @@
+
+.vehicle-insurance-page {
+  color: #243047;
+  background: #f7f9fc;
+  min-height: 100vh;
+}
+
+.vehicle-hero {
+  padding: 85px 8%;
+  background: linear-gradient(120deg, #102b50, #1765a5);
+  color: white;
+}
+
+.vehicle-hero-content {
+  max-width: 700px;
+}
+
+.vehicle-tag {
+  color: #8ed9ff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.vehicle-hero h1 {
+  font-size: 46px;
+  margin: 18px 0;
+}
+
+.vehicle-hero p {
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.vehicle-hero-btn,
+.vehicle-pay-btn {
+  background: #0878d1;
+  color: white;
+  border: none;
+  padding: 14px 25px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.vehicle-hero-btn {
+  background: white;
+  color: #14558c;
+}
+
+.vehicle-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 35px 8%;
+  background: white;
+}
+
+.vehicle-benefits div {
+  text-align: center;
+  padding: 15px;
+}
+
+.vehicle-benefits span {
+  font-size: 32px;
+}
+
+.vehicle-benefits h3 {
+  margin-bottom: 8px;
+}
+
+.vehicle-benefits p {
+  color: #718096;
+}
+
+.vehicle-plans-section {
+  padding: 60px 7%;
+}
+
+.vehicle-section-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.vehicle-section-heading span {
+  color: #0878d1;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.vehicle-section-heading h2 {
+  font-size: 32px;
+}
+
+.vehicle-section-heading p {
+  color: #718096;
+}
+
+.vehicle-type-selector {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.vehicle-type-selector button {
+  padding: 13px 25px;
+  border: 1px solid #d5dfeb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.vehicle-type-selector button.active {
+  background: #14558c;
+  color: white;
+  border-color: #14558c;
+}
+
+.vehicle-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.vehicle-plan-card {
+  position: relative;
+  background: white;
+  padding: 28px;
+  border: 1px solid #e0e7ef;
+  border-radius: 13px;
+  box-shadow: 0 5px 20px rgba(20, 50, 80, 0.06);
+}
+
+.vehicle-plan-card.selected {
+  border: 2px solid #0878d1;
+}
+
+.vehicle-popular {
+  position: absolute;
+  top: -12px;
+  right: 18px;
+  background: #0878d1;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.vehicle-plan-description {
+  color: #718096;
+  min-height: 42px;
+}
+
+.vehicle-coverage {
+  margin-top: 25px;
+}
+
+.vehicle-coverage small {
+  color: #718096;
+}
+
+.vehicle-coverage h2 {
+  color: #14558c;
+}
+
+.vehicle-premium {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 20px 0;
+}
+
+.vehicle-premium h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.vehicle-premium span {
+  color: #718096;
+}
+
+.vehicle-plan-card ul {
+  padding-left: 0;
+  list-style: none;
+  line-height: 2.2;
+  min-height: 110px;
+}
+
+.vehicle-plan-card li {
+  color: #43546a;
+}
+
+.vehicle-select-btn {
+  width: 100%;
+  padding: 12px;
+  background: white;
+  color: #14558c;
+  border: 1px solid #14558c;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.vehicle-select-btn:hover {
+  background: #14558c;
+  color: white;
+}
+
+.vehicle-selection-summary {
+  background: white;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 35px auto 0;
+  max-width: 550px;
+  text-align: center;
+}
+
+.vehicle-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 45, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.vehicle-payment-modal,
+.vehicle-success-modal {
+  position: relative;
+  background: white;
+  border-radius: 15px;
+  padding: 35px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.vehicle-payment-modal h1 {
+  color: #0878d1;
+}
+
+.vehicle-close-btn {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  border: none;
+  background: none;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.vehicle-payment-option {
+  display: block;
+  padding: 14px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.vehicle-payment-option input {
+  margin-right: 12px;
+}
+
+.vehicle-payment-modal .vehicle-pay-btn,
+.vehicle-success-modal .vehicle-pay-btn {
+  width: 100%;
+}
+
+.vehicle-demo-note {
+  color: #8995a5;
+  font-size: 12px;
+  text-align: center;
+}
+
+.vehicle-success-modal {
+  text-align: center;
+}
+
+.vehicle-success-icon {
+  background: #e0f7e9;
+  color: #159447;
+  width: 55px;
+  height: 55px;
+  line-height: 55px;
+  border-radius: 50%;
+  font-size: 30px;
+  margin: 0 auto 15px;
+}
+
+.vehicle-policy-details {
+  text-align: left;
+  background: #f4f7fb;
+  padding: 15px;
+  border-radius: 9px;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.vehicle-error {
+  color: #d62828;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.vehicle-pay-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 850px) {
+  .vehicle-plan-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .vehicle-hero h1 {
+    font-size: 34px;
+  }
+
+  .vehicle-benefits,
+  .vehicle-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-type-selector {
+    flex-direction: column;
+  }
+
+  .vehicle-payment-modal,
+  .vehicle-success-modal {
+    padding: 25px 18px;
+  }
+}

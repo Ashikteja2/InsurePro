@@ -1,0 +1,613 @@
+
+.health-page {
+  padding: 28px;
+  color: #17315a;
+  max-width: 1450px;
+  margin: auto;
+}
+
+.health-hero {
+  background: linear-gradient(115deg, #eaf2ff, #f5f8ff);
+  border-radius: 18px;
+  padding: 55px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  gap: 30px;
+}
+
+.health-eyebrow {
+  color: #2672ed;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.health-hero h1 {
+  font-size: clamp(32px, 4vw, 49px);
+  line-height: 1.2;
+  margin: 22px 0;
+}
+
+.health-hero h1 span {
+  color: #2672ed;
+}
+
+.health-hero-content > p {
+  color: #71829d;
+  max-width: 480px;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.health-hero-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px 22px;
+  background: #2672ed;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.health-trust {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.health-trust span {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: #536b8c;
+  font-size: 12px;
+}
+
+.health-trust svg {
+  color: #2672ed;
+}
+
+.health-hero-art {
+  position: relative;
+  width: 320px;
+  height: 270px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.health-circle {
+  width: 245px;
+  height: 245px;
+  background: linear-gradient(145deg, #347cf4, #124ba8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 25px 50px #2672ed35;
+}
+
+.health-floating-card {
+  position: absolute;
+  bottom: 15px;
+  left: -5px;
+  background: white;
+  padding: 17px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 35px #17315a15;
+  color: #2672ed;
+}
+
+.health-floating-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.health-floating-card strong {
+  color: #17315a;
+  font-size: 12px;
+}
+
+.health-floating-card small {
+  color: #8593a9;
+  font-size: 11px;
+}
+
+/* BENEFITS */
+
+.health-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 25px 0 50px;
+}
+
+.health-benefits > div {
+  padding: 23px;
+  background: white;
+  border: 1px solid #e9edf5;
+  border-radius: 12px;
+}
+
+.health-benefits svg {
+  color: #2672ed;
+  margin-bottom: 12px;
+}
+
+.health-benefits h3 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+
+.health-benefits p {
+  font-size: 12px;
+  color: #8795aa;
+  margin: 0;
+}
+
+/* PLANS */
+
+.health-section-title,
+.calculator-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.health-section-title > span,
+.calculator-heading > span {
+  color: #2672ed;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.health-section-title h2,
+.calculator-heading h2 {
+  font-size: 29px;
+  margin: 12px 0;
+}
+
+.health-section-title p,
+.calculator-heading p {
+  color: #8492a8;
+  font-size: 13px;
+}
+
+.health-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.health-plan-card {
+  position: relative;
+  background: white;
+  padding: 25px;
+  border: 1px solid #e5eaf2;
+  border-radius: 15px;
+  transition: 0.2s;
+}
+
+.health-plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px #17315a12;
+}
+
+.popular-plan {
+  border: 2px solid #2672ed;
+}
+
+.popular-label {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  color: #2672ed;
+  background: #eaf2ff;
+  padding: 7px 9px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.plan-icon {
+  width: 49px;
+  height: 49px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 19px;
+}
+
+.plan-icon.basic {
+  background: #eaf2ff;
+  color: #2672ed;
+}
+
+.plan-icon.plus {
+  background: #f1eaff;
+  color: #8859df;
+}
+
+.plan-icon.premium {
+  background: #fff1e5;
+  color: #ec9137;
+}
+
+.health-plan-card h3 {
+  font-size: 19px;
+  margin: 0 0 9px;
+}
+
+.plan-description {
+  color: #8795aa;
+  font-size: 12px;
+  min-height: 35px;
+  line-height: 1.6;
+}
+
+.plan-coverage {
+  margin-top: 24px;
+}
+
+.plan-coverage small {
+  color: #929eb0;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.plan-coverage h2 {
+  font-size: 27px;
+  margin: 7px 0;
+}
+
+.plan-price {
+  margin-top: 15px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.plan-price strong {
+  color: #2672ed;
+  font-size: 23px;
+}
+
+.plan-price span {
+  font-size: 10px;
+  color: #929eb0;
+}
+
+.plan-divider {
+  height: 1px;
+  background: #edf0f5;
+  margin: 20px 0;
+}
+
+.plan-features-heading {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.health-plan-card ul {
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin: 18px 0 25px;
+}
+
+.health-plan-card li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  color: #667891;
+  font-size: 11px;
+}
+
+.health-plan-card li svg {
+  flex-shrink: 0;
+  color: #20a36b;
+}
+
+.plan-button {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #2672ed;
+  border-radius: 8px;
+  color: #2672ed;
+  background: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-button:hover {
+  background: #f0f5ff;
+}
+
+.plan-button.primary {
+  background: #2672ed;
+  color: white;
+}
+
+.plan-button.primary:hover {
+  background: #155bc5;
+}
+
+/* CALCULATOR */
+
+.premium-calculator {
+  margin-top: 55px;
+  padding: 40px;
+  background: white;
+  border: 1px solid #e5eaf2;
+  border-radius: 16px;
+}
+
+.calculator-content {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 35px;
+  align-items: center;
+  max-width: 950px;
+  margin: auto;
+}
+
+.calculator-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.calculator-fields label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.calculator-fields label strong {
+  color: #2672ed;
+}
+
+.calculator-fields input[type="range"] {
+  width: 100%;
+  accent-color: #2672ed;
+}
+
+.calculator-fields select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dfe6f0;
+  border-radius: 8px;
+  color: #17315a;
+  background: white;
+  font-size: 13px;
+}
+
+.premium-result {
+  background: linear-gradient(145deg, #edf4ff, #e2edff);
+  padding: 28px;
+  border-radius: 13px;
+  text-align: center;
+}
+
+.result-icon {
+  color: #2672ed;
+  margin-bottom: 12px;
+}
+
+.premium-result > p {
+  font-size: 13px;
+  color: #687e9b;
+}
+
+.premium-result h2 {
+  font-size: 34px;
+  color: #17315a;
+  margin: 15px 0;
+}
+
+.premium-result > span {
+  color: #8290a5;
+  font-size: 11px;
+}
+
+.result-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  margin-top: 23px;
+  padding-top: 15px;
+  border-top: 1px solid #cbdcf5;
+  color: #71829d;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* DISCLAIMER */
+
+.health-disclaimer {
+  display: flex;
+  gap: 12px;
+  margin: 25px 0;
+  padding: 17px;
+  background: #fff9ed;
+  border: 1px solid #f5e6c7;
+  border-radius: 10px;
+  color: #a77b31;
+}
+
+.health-disclaimer svg {
+  flex-shrink: 0;
+}
+
+.health-disclaimer p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* MODAL */
+
+.plan-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: #102c5980;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.plan-modal {
+  background: white;
+  width: 100%;
+  max-width: 430px;
+  border-radius: 16px;
+  padding: 30px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 17px;
+  border: none;
+  background: transparent;
+  font-size: 29px;
+  color: #71829d;
+  cursor: pointer;
+}
+
+.plan-modal h2 {
+  font-size: 23px;
+  margin: 10px 0;
+}
+
+.plan-modal > p {
+  color: #8290a5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.modal-plan-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 12px;
+}
+
+.modal-plan-detail span {
+  color: #8290a5;
+}
+
+.modal-plan-detail strong {
+  color: #17315a;
+}
+
+.plan-modal .plan-button {
+  margin-top: 23px;
+}
+
+.modal-cancel {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: #8290a5;
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .health-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .health-hero {
+    padding: 35px;
+  }
+
+  .health-hero-art {
+    width: 230px;
+  }
+
+  .health-circle {
+    width: 190px;
+    height: 190px;
+  }
+
+  .health-circle svg {
+    width: 80px;
+  }
+}
+
+@media (max-width: 700px) {
+  .health-page {
+    padding: 15px;
+  }
+
+  .health-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 22px;
+  }
+
+  .health-hero-art {
+    align-self: center;
+    height: 220px;
+  }
+
+  .health-benefits {
+    grid-template-columns: 1fr;
+    margin-bottom: 35px;
+  }
+
+  .health-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calculator-content {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-calculator {
+    padding: 25px 17px;
+  }
+
+  .health-section-title h2,
+  .calculator-heading h2 {
+    font-size: 23px;
+  }
+}

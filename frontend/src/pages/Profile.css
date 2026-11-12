@@ -1,0 +1,155 @@
+
+.profile-page {
+  min-height: 100vh;
+  background: #f4f7fc;
+  color: #17345c;
+}
+
+.profile-header {
+  background: white;
+  padding: 20px 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5eaf2;
+}
+
+.profile-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #17345c;
+  font-size: 26px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.profile-logo svg {
+  color: #2868f5;
+}
+
+.profile-logo span {
+  color: #2868f5;
+}
+
+.profile-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  background: #2868f5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.profile-container {
+  max-width: 850px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2868f5;
+  text-decoration: none;
+  margin-bottom: 30px;
+}
+
+.profile-title {
+  margin-bottom: 25px;
+}
+
+.profile-title h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.profile-title p {
+  color: #7b8da8;
+}
+
+.profile-card {
+  background: white;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 5px 25px rgba(30, 60, 100, 0.07);
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: #2868f5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.profile-card h2 {
+  margin-bottom: 5px;
+}
+
+.profile-member {
+  color: #7b8da8;
+  margin-bottom: 30px;
+}
+
+.profile-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  text-align: left;
+}
+
+.profile-detail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e5eaf2;
+  border-radius: 10px;
+}
+
+.profile-detail svg {
+  color: #2868f5;
+  flex-shrink: 0;
+}
+
+.profile-detail span {
+  display: block;
+  color: #8493aa;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.profile-detail strong {
+  overflow-wrap: anywhere;
+}
+
+.profile-message {
+  text-align: center;
+  margin: 100px auto;
+}
+
+.profile-message a {
+  color: #2868f5;
+}
+
+@media (max-width: 600px) {
+  .profile-details {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    padding: 22px;
+  }
+}

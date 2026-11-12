@@ -1,0 +1,350 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f8faff;
+  color: #142443;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.navbar {
+  height: 82px;
+  padding: 0 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+}
+
+.logo {
+  font-size: 25px;
+  font-weight: 800;
+  color: #142b50;
+}
+
+.logo span:last-child {
+  color: #2672ed;
+}
+
+.logo-icon {
+  color: #2672ed;
+  margin-right: 7px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 35px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #52617a;
+  font-size: 14px;
+}
+
+.nav-links a:hover {
+  color: #2672ed;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.login-btn,
+.nav-quote,
+.primary-btn,
+.secondary-btn {
+  padding: 13px 23px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+}
+
+.login-btn {
+  background: white;
+  color: #142b50;
+}
+
+.nav-quote,
+.primary-btn {
+  background: #2672ed;
+  color: white;
+}
+
+.hero {
+  min-height: 540px;
+  padding: 80px 10%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(120deg, #edf4ff, #f8fbff);
+  gap: 40px;
+}
+
+.hero-content {
+  max-width: 570px;
+}
+
+.tag {
+  color: #2672ed;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 22px;
+}
+
+.hero h1 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1.13;
+  color: #142b50;
+}
+
+.hero h1 span {
+  color: #2672ed;
+}
+
+.hero-content > p {
+  margin-top: 22px;
+  color: #66748b;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.secondary-btn {
+  background: white;
+  color: #142b50;
+  border: 1px solid #dce5f2;
+}
+
+.trust {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.trust-icon {
+  background: #dceaff;
+  color: #2672ed;
+  padding: 12px;
+  border-radius: 50%;
+}
+
+.trust strong,
+.trust small {
+  display: block;
+}
+
+.trust small {
+  color: #8290a4;
+  margin-top: 5px;
+}
+
+.hero-visual {
+  width: 370px;
+  height: 370px;
+  display: grid;
+  place-items: center;
+}
+
+.hero-circle {
+  width: 310px;
+  height: 310px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #2672ed, #0e3c87);
+  display: grid;
+  place-items: center;
+  position: relative;
+  box-shadow: 0 25px 70px #2672ed40;
+}
+
+.shield {
+  font-size: 145px;
+  color: white;
+}
+
+.floating-card {
+  position: absolute;
+  bottom: 12px;
+  right: -40px;
+  padding: 20px;
+  border-radius: 13px;
+  background: white;
+  box-shadow: 0 12px 35px #142b5020;
+  font-weight: bold;
+}
+
+.floating-card span {
+  color: #16a36a;
+  margin-right: 8px;
+}
+
+.floating-card small {
+  display: block;
+  margin-top: 8px;
+  color: #8290a4;
+  font-weight: normal;
+}
+
+.insurance-section {
+  padding: 85px 10%;
+  text-align: center;
+}
+
+.section-heading > span {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #2672ed;
+  font-weight: bold;
+}
+
+.section-heading h2 {
+  font-size: 36px;
+  margin: 15px 0;
+}
+
+.section-heading p {
+  color: #8290a4;
+}
+
+.insurance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  margin-top: 45px;
+  text-align: left;
+}
+
+.insurance-card {
+  padding: 35px;
+  background: white;
+  border: 1px solid #e9eef6;
+  border-radius: 15px;
+  transition: 0.3s;
+}
+
+.insurance-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 15px 40px #142b5012;
+}
+
+.card-icon {
+  font-size: 35px;
+  margin-bottom: 20px;
+}
+
+.insurance-card h3 {
+  font-size: 23px;
+  margin-bottom: 15px;
+}
+
+.insurance-card p {
+  color: #718098;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.insurance-card a {
+  color: #2672ed;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.bottom-banner {
+  margin: 30px 10%;
+  padding: 55px 20px;
+  text-align: center;
+  background: #142b50;
+  color: white;
+  border-radius: 18px;
+}
+
+.bottom-banner p {
+  color: #c0cce0;
+  margin: 15px 0 25px;
+}
+
+footer {
+  padding: 35px 10%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer p {
+  color: #8290a4;
+  font-size: 13px;
+}
+
+@media (max-width: 850px) {
+  .navbar {
+    padding: 20px 5%;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .hero {
+    padding: 60px 7%;
+    flex-direction: column;
+  }
+
+  .hero-visual {
+    width: 100%;
+  }
+
+  .insurance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-actions {
+    gap: 5px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .hero-circle {
+    width: 240px;
+    height: 240px;
+  }
+
+  .floating-card {
+    right: -15px;
+  }
+
+  .insurance-section {
+    padding: 60px 6%;
+  }
+}
