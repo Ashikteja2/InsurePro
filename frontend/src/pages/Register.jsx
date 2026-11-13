@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ShieldCheck,
   User,
@@ -11,10 +11,11 @@ import {
   EyeOff
 } from 'lucide-react';
 
-import API_URL from '../api';
 import './Auth.css';
 
 function Register() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +37,7 @@ function Register() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     setMessage('');
@@ -52,37 +53,47 @@ function Register() {
       return;
     }
 
+    if (!/^[0-9]{10}$/.test(form.phone.trim())) {
+      setMessage('Enter a valid 10-digit phone number.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/customers/register`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            fullName: form.name.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            password: form.password
-          })
-        }
+      const users = JSON.parse(
+        localStorage.getItem('insurepro_demo_users') || '[]'
       );
 
-      const data = await response.json();
+      const email = form.email.trim().toLowerCase();
 
-      if (!response.ok) {
-        throw new Error(
-          data.message || 'Registration failed. Please try again.'
-        );
+      const existingUser = users.find(
+        (user) => user.email === email
+      );
+
+      if (existingUser) {
+        setMessage('This email is already registered. Please sign in.');
+        setLoading(false);
+        return;
       }
 
-      setSuccess(true);
-      setMessage(
-        'Account created successfully! You can now sign in.'
+      const newUser = {
+        id: Date.now(),
+        name: form.name.trim(),
+        email,
+        phone: form.phone.trim(),
+        password: form.password
+      };
+
+      users.push(newUser);
+
+      localStorage.setItem(
+        'insurepro_demo_users',
+        JSON.stringify(users)
       );
+
+      setSuccess(true);
+      setMessage('Account created successfully! Please sign in.');
 
       setForm({
         name: '',
@@ -94,13 +105,8 @@ function Register() {
 
     } catch (error) {
       console.error('Registration error:', error);
-
+      setMessage('Unable to create account. Please try again.');
       setSuccess(false);
-
-      setMessage(
-        error.message || 'Unable to connect to the server.'
-      );
-
     } finally {
       setLoading(false);
     }
