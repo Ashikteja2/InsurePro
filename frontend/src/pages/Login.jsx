@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
+import API_URL from '../api';
 
 function Login() {
   const navigate = useNavigate();
@@ -49,10 +48,11 @@ function Login() {
       const customerId = data.customerId ?? data.id;
 
       if (!customerId) {
-        throw new Error('Customer ID was not received from the server.');
+        throw new Error(
+          'Customer ID was not received from the server.'
+        );
       }
 
-      // Save logged-in customer details.
       localStorage.setItem(
         'insureproCustomer',
         JSON.stringify({
@@ -64,7 +64,6 @@ function Login() {
         })
       );
 
-      // Navigate after successful login.
       navigate('/dashboard');
 
     } catch (err) {
@@ -171,8 +170,7 @@ const styles = {
     color: '#16345c',
     fontSize: '36px',
     lineHeight: '1.2',
-    fontWeight: '700',
-    whiteSpace: 'normal'
+    fontWeight: '700'
   },
 
   subtitle: {
