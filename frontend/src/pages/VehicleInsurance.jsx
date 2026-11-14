@@ -10,44 +10,69 @@ const vehiclePlans = {
       coverage: '₹3,00,000',
       premium: 4500,
       description: 'Essential protection for your car',
-      benefits: ['Third-party protection', 'Accident coverage', '24/7 support']
+      benefits: [
+        'Third-party protection',
+        'Accident coverage',
+        '24/7 support'
+      ]
     },
     {
       name: 'Car Plus',
       coverage: '₹5,00,000',
       premium: 7500,
       description: 'Enhanced protection for your car',
-      benefits: ['Third-party protection', 'Own damage coverage', 'Roadside assistance']
+      benefits: [
+        'Third-party protection',
+        'Own damage coverage',
+        'Roadside assistance'
+      ]
     },
     {
       name: 'Car Premium',
       coverage: '₹10,00,000',
       premium: 12000,
       description: 'Complete car protection',
-      benefits: ['Comprehensive coverage', 'Theft protection', 'Roadside assistance']
+      benefits: [
+        'Comprehensive coverage',
+        'Theft protection',
+        'Roadside assistance'
+      ]
     }
   ],
+
   Bike: [
     {
       name: 'Bike Basic',
       coverage: '₹1,00,000',
       premium: 1500,
       description: 'Essential protection for your bike',
-      benefits: ['Third-party protection', 'Accident coverage', '24/7 support']
+      benefits: [
+        'Third-party protection',
+        'Accident coverage',
+        '24/7 support'
+      ]
     },
     {
       name: 'Bike Plus',
       coverage: '₹2,00,000',
       premium: 2500,
       description: 'Enhanced protection for your bike',
-      benefits: ['Own damage coverage', 'Theft protection', 'Roadside assistance']
+      benefits: [
+        'Own damage coverage',
+        'Theft protection',
+        'Roadside assistance'
+      ]
     },
     {
       name: 'Bike Premium',
       coverage: '₹3,00,000',
       premium: 3500,
       description: 'Complete bike protection',
-      benefits: ['Comprehensive coverage', 'Accident coverage', 'Roadside assistance']
+      benefits: [
+        'Comprehensive coverage',
+        'Accident coverage',
+        'Roadside assistance'
+      ]
     }
   ]
 };
@@ -65,34 +90,25 @@ function VehicleInsurance() {
 
   const plans = vehiclePlans[vehicleType];
 
-  const handlePurchase = async () => {
-    if (!selectedPlan) {
+  // Frontend-only demo purchase.
+  const handlePurchase = () => {
+    if (!selectedPlan || loading) {
       setError('Please select an insurance plan.');
-      return;
-    }
-
-    const customerData = localStorage.getItem('insureproCustomer');
-
-    if (!customerData) {
-      alert('Please login before purchasing insurance.');
-      navigate('/login');
       return;
     }
 
     let customer;
 
     try {
-      customer = JSON.parse(customerData);
+      customer = JSON.parse(
+        localStorage.getItem('insureproCustomer') || 'null'
+      );
     } catch {
-      alert('Customer login information is invalid. Please login again.');
-      navigate('/login');
-      return;
+      customer = null;
     }
 
-    const customerId = customer.customerId || customer.id;
-
-    if (!customerId) {
-      alert('Customer ID not found. Please login again.');
+    if (!customer) {
+      alert('Please login before purchasing insurance.');
       navigate('/login');
       return;
     }
@@ -101,43 +117,86 @@ function VehicleInsurance() {
     setError('');
 
     try {
-      const response = await fetch(
-        'http://localhost:8082/api/policies/purchase',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            customerId: Number(customerId),
-            name: selectedPlan.name,
-            type: 'Vehicle',
-            coverage: selectedPlan.coverage,
-            premium: `₹${selectedPlan.premium}`
-          })
-        }
+      const now = new Date();
+
+      const expiry = new Date(now);
+      expiry.setFullYear(expiry.getFullYear() + 1);
+
+      const policyNumber = 'VEH-' + Date.now();
+
+      const policy = {
+        id: policyNumber,
+        policyNumber: policyNumber,
+
+        customerId: customer.customerId ?? customer.id ?? null,
+        customerName: customer.fullName || '',
+        email: customer.email || '',
+
+        name: selectedPlan.name,
+        planName: selectedPlan.name,
+
+        type: 'Vehicle',
+        vehicleType: vehicleType,
+
+        coverage: selectedPlan.coverage,
+        premium: String(selectedPlan.premium),
+
+        status: 'Active',
+        paymentMethod: paymentMethod,
+
+        transactionId: 'DEMO-' + Date.now(),
+
+        purchaseDate: now.toISOString(),
+        startDate: now.toISOString(),
+        expiryDate: expiry.toISOString()
+      };
+
+      // Read existing policies.
+      const existingPolicies = JSON.parse(
+        localStorage.getItem('insureproPolicies') || '[]'
       );
 
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || 'Policy generation failed.');
-      }
+      // Save vehicle policy.
+      existingPolicies.push(policy);
 
-      const policy = await response.json();
+      localStorage.setItem(
+        'insureproPolicies',
+        JSON.stringify(existingPolicies)
+      );
+
+      // Read existing payments.
+      const existingPayments = JSON.parse(
+        localStorage.getItem('insureproPayments') || '[]'
+      );
+
+      // Create demo payment.
+      const payment = {
+        id: 'PAY-' + Date.now(),
+        policyNumber: policyNumber,
+        planName: selectedPlan.name,
+        amount: selectedPlan.premium,
+        paymentMethod: paymentMethod,
+        status: 'Successful',
+        paymentDate: now.toISOString()
+      };
+
+      existingPayments.push(payment);
+
+      localStorage.setItem(
+        'insureproPayments',
+        JSON.stringify(existingPayments)
+      );
 
       setGeneratedPolicy({
         ...policy,
-        planName: selectedPlan.name,
-        coverage: selectedPlan.coverage,
-        premium: selectedPlan.premium,
-        vehicleType,
-        paymentMethod,
-        transactionId: `DEMO-${Date.now()}`
+        premium: selectedPlan.premium
       });
 
       setPaymentStep('success');
+
     } catch (err) {
-      setError(err.message || 'Unable to generate policy. Please try again.');
+      console.error('Vehicle policy error:', err);
+      setError('Unable to save vehicle policy. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -145,14 +204,20 @@ function VehicleInsurance() {
 
   return (
     <div className="vehicle-insurance-page">
+
       <section className="vehicle-hero">
         <div className="vehicle-hero-content">
-          <span className="vehicle-tag">INSUREPRO VEHICLE PROTECTION</span>
+          <span className="vehicle-tag">
+            INSUREPRO VEHICLE PROTECTION
+          </span>
+
           <h1>Protect Your Journey</h1>
+
           <p>
             Choose the right insurance for your car or bike.
             Enjoy peace of mind on every journey.
           </p>
+
           <button
             className="vehicle-hero-btn"
             onClick={() =>
@@ -172,11 +237,13 @@ function VehicleInsurance() {
           <h3>Reliable Protection</h3>
           <p>Protection for unexpected events.</p>
         </div>
+
         <div>
           <span>⚡</span>
           <h3>Easy Process</h3>
           <p>Simple insurance purchase process.</p>
         </div>
+
         <div>
           <span>🤝</span>
           <h3>Customer Support</h3>
@@ -223,10 +290,15 @@ function VehicleInsurance() {
               }`}
               key={plan.name}
             >
-              {index === 1 && <span className="vehicle-popular">POPULAR</span>}
+              {index === 1 && (
+                <span className="vehicle-popular">POPULAR</span>
+              )}
 
               <h3>{plan.name}</h3>
-              <p className="vehicle-plan-description">{plan.description}</p>
+
+              <p className="vehicle-plan-description">
+                {plan.description}
+              </p>
 
               <div className="vehicle-coverage">
                 <small>Coverage Amount</small>
@@ -250,6 +322,7 @@ function VehicleInsurance() {
                   setSelectedPlan(plan);
                   setError('');
                   setPaymentStep('plans');
+                  setGeneratedPolicy(null);
                 }}
               >
                 {selectedPlan?.name === plan.name
@@ -263,8 +336,14 @@ function VehicleInsurance() {
         {selectedPlan && paymentStep === 'plans' && (
           <div className="vehicle-selection-summary">
             <h3>Selected Plan: {selectedPlan.name}</h3>
+
             <p>Coverage: {selectedPlan.coverage}</p>
-            <p>Annual Premium: ₹{selectedPlan.premium.toLocaleString('en-IN')}</p>
+
+            <p>
+              Annual Premium: ₹
+              {selectedPlan.premium.toLocaleString('en-IN')}
+            </p>
+
             <button
               className="vehicle-pay-btn"
               onClick={() => setPaymentStep('payment')}
@@ -274,20 +353,26 @@ function VehicleInsurance() {
           </div>
         )}
 
-        {error && <p className="vehicle-error">{error}</p>}
+        {error && (
+          <p className="vehicle-error">{error}</p>
+        )}
       </section>
 
+      {/* Payment Modal */}
       {paymentStep === 'payment' && selectedPlan && (
         <div className="vehicle-modal-overlay">
           <div className="vehicle-payment-modal">
+
             <button
               className="vehicle-close-btn"
               onClick={() => setPaymentStep('plans')}
+              disabled={loading}
             >
               ×
             </button>
 
-            <h2>Complete Your Payment</h2>
+            <h2>Demo Payment</h2>
+
             <p>{selectedPlan.name}</p>
 
             <h1>
@@ -304,12 +389,15 @@ function VehicleInsurance() {
                   value={method}
                   checked={paymentMethod === method}
                   onChange={(e) => setPaymentMethod(e.target.value)}
+                  disabled={loading}
                 />
                 {method}
               </label>
             ))}
 
-            {error && <p className="vehicle-error">{error}</p>}
+            {error && (
+              <p className="vehicle-error">{error}</p>
+            )}
 
             <button
               className="vehicle-pay-btn"
@@ -328,27 +416,53 @@ function VehicleInsurance() {
         </div>
       )}
 
+      {/* Success Modal */}
       {paymentStep === 'success' && generatedPolicy && (
         <div className="vehicle-modal-overlay">
           <div className="vehicle-success-modal">
+
             <div className="vehicle-success-icon">✓</div>
+
             <h2>Policy Generated Successfully!</h2>
-            <p>Your vehicle insurance policy has been saved.</p>
+
+            <p>Your vehicle insurance demo policy has been saved.</p>
 
             <div className="vehicle-policy-details">
               <p>
                 <strong>Policy Number:</strong>{' '}
-                {generatedPolicy.policyNumber || `Generated`}
+                {generatedPolicy.policyNumber}
               </p>
-              <p><strong>Vehicle:</strong> {generatedPolicy.vehicleType}</p>
-              <p><strong>Plan:</strong> {generatedPolicy.planName}</p>
-              <p><strong>Coverage:</strong> {generatedPolicy.coverage}</p>
+
+              <p>
+                <strong>Vehicle:</strong> {generatedPolicy.vehicleType}
+              </p>
+
+              <p>
+                <strong>Plan:</strong> {generatedPolicy.planName}
+              </p>
+
+              <p>
+                <strong>Coverage:</strong> {generatedPolicy.coverage}
+              </p>
+
               <p>
                 <strong>Premium:</strong>{' '}
                 ₹{generatedPolicy.premium.toLocaleString('en-IN')}
               </p>
-              <p><strong>Payment Method:</strong> {generatedPolicy.paymentMethod}</p>
-              <p><strong>Demo Transaction:</strong> {generatedPolicy.transactionId}</p>
+
+              <p>
+                <strong>Payment Method:</strong>{' '}
+                {generatedPolicy.paymentMethod}
+              </p>
+
+              <p>
+                <strong>Status:</strong> Active
+              </p>
+
+              <p>
+                <strong>Demo Transaction:</strong>{' '}
+                {generatedPolicy.transactionId}
+              </p>
             </div>
 
             <button
@@ -357,9 +471,22 @@ function VehicleInsurance() {
             >
               View My Policies
             </button>
+
+            <button
+              className="vehicle-select-btn"
+              onClick={() => {
+                setPaymentStep('plans');
+                setSelectedPlan(null);
+                setGeneratedPolicy(null);
+              }}
+            >
+              Close
+            </button>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

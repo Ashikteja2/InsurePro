@@ -13,8 +13,8 @@ const healthPlans = [
       'Pre and post hospitalization',
       'Daycare procedures',
       'Ambulance expenses',
-      '24/7 customer support'
-    ]
+      '24/7 customer support',
+    ],
   },
   {
     id: 2,
@@ -27,8 +27,8 @@ const healthPlans = [
       'Higher coverage limits',
       'Additional wellness benefits',
       'Extended hospitalization',
-      'Priority customer support'
-    ]
+      'Priority customer support',
+    ],
   },
   {
     id: 3,
@@ -41,9 +41,9 @@ const healthPlans = [
       'Premium hospitalization coverage',
       'Enhanced medical benefits',
       'Higher claim limits',
-      'Priority assistance'
-    ]
-  }
+      'Priority assistance',
+    ],
+  },
 ];
 
 function HealthInsurance() {
@@ -59,7 +59,7 @@ function HealthInsurance() {
     setSelectedPlan(plan);
   };
 
-  // DEMO PAYMENT: No backend or database required.
+  // Frontend-only demo purchase.
   const handlePayment = () => {
     if (!selectedPlan || loading) return;
 
@@ -84,47 +84,54 @@ function HealthInsurance() {
 
     try {
       const now = new Date();
+
       const expiry = new Date(now);
       expiry.setFullYear(expiry.getFullYear() + 1);
 
-      const policyNumber =
-        'INS-' + Date.now().toString().slice(-10);
+      const policyNumber = 'INS-' + Date.now();
 
+      // Create health insurance policy.
       const policy = {
         id: policyNumber,
         policyNumber: policyNumber,
+
         customerId: customer.customerId ?? customer.id ?? null,
         customerName: customer.fullName || '',
         email: customer.email || '',
+
+        name: selectedPlan.name,
         planName: selectedPlan.name,
+
         type: 'Health',
+
         coverage: selectedPlan.coverage,
         coverageValue: selectedPlan.coverageValue,
+
         premium: String(selectedPlan.premium),
+
         status: 'Active',
         paymentMethod: paymentMethod,
+
         purchaseDate: now.toISOString(),
         startDate: now.toISOString(),
-        expiryDate: expiry.toISOString()
+        expiryDate: expiry.toISOString(),
       };
 
-      // Save policy in browser storage.
+      // Get existing policies.
       const existingPolicies = JSON.parse(
         localStorage.getItem('insureproPolicies') || '[]'
       );
 
+      // Add new policy.
       existingPolicies.push(policy);
 
+      // Save policies in browser storage.
       localStorage.setItem(
         'insureproPolicies',
         JSON.stringify(existingPolicies)
       );
 
-      // Save demo payment in browser storage.
-      const existingPayments = JSON.parse(
-        localStorage.getItem('insureproPayments') || '[]'
-      );
-
+      // Create demo payment record.
       const payment = {
         id: 'PAY-' + Date.now(),
         policyNumber: policyNumber,
@@ -132,11 +139,17 @@ function HealthInsurance() {
         amount: selectedPlan.premium,
         paymentMethod: paymentMethod,
         status: 'Successful',
-        paymentDate: now.toISOString()
+        paymentDate: now.toISOString(),
       };
+
+      // Get existing payments.
+      const existingPayments = JSON.parse(
+        localStorage.getItem('insureproPayments') || '[]'
+      );
 
       existingPayments.push(payment);
 
+      // Save payment record.
       localStorage.setItem(
         'insureproPayments',
         JSON.stringify(existingPayments)
@@ -145,11 +158,11 @@ function HealthInsurance() {
       setPurchasedPolicy(policy);
 
       setMessage(
-        'Demo payment successful! Your policy has been created.'
+        'Demo payment successful! Your health policy has been created.'
       );
 
     } catch (error) {
-      console.error('Demo payment error:', error);
+      console.error('Health policy error:', error);
 
       setMessage(
         'Unable to save your policy. Please try again.'
@@ -163,6 +176,7 @@ function HealthInsurance() {
   return (
     <div style={styles.page}>
 
+      {/* Header */}
       <header style={styles.header}>
         <h1>Health Insurance Plans</h1>
         <p>
@@ -170,6 +184,7 @@ function HealthInsurance() {
         </p>
       </header>
 
+      {/* Health Plans */}
       <div style={styles.plans}>
 
         {healthPlans.map((plan) => (
@@ -216,8 +231,7 @@ function HealthInsurance() {
 
       </div>
 
-      {/* DEMO PAYMENT MODAL */}
-
+      {/* Payment Modal */}
       {selectedPlan && !purchasedPolicy && (
 
         <div style={styles.overlay}>
@@ -286,15 +300,14 @@ function HealthInsurance() {
             <button
               style={{
                 ...styles.payButton,
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
               }}
               onClick={handlePayment}
               disabled={loading}
             >
               {loading
                 ? 'Processing...'
-                : `Pay ₹${selectedPlan.premium.toLocaleString('en-IN')}`
-              }
+                : `Pay ₹${selectedPlan.premium.toLocaleString('en-IN')}`}
             </button>
 
             <button
@@ -314,8 +327,7 @@ function HealthInsurance() {
 
       )}
 
-      {/* PURCHASE SUCCESS MODAL */}
-
+      {/* Purchase Success Modal */}
       {purchasedPolicy && (
 
         <div style={styles.overlay}>
@@ -394,12 +406,12 @@ const styles = {
     background: '#f5f7fb',
     padding: '35px 5%',
     fontFamily: 'Arial, sans-serif',
-    color: '#172b4d'
+    color: '#172b4d',
   },
 
   header: {
     textAlign: 'center',
-    marginBottom: '35px'
+    marginBottom: '35px',
   },
 
   plans: {
@@ -407,42 +419,42 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
     gap: '25px',
     maxWidth: '1200px',
-    margin: 'auto'
+    margin: 'auto',
   },
 
   card: {
     background: '#fff',
     borderRadius: '14px',
     padding: '25px',
-    boxShadow: '0 4px 18px rgba(0,0,0,0.07)'
+    boxShadow: '0 4px 18px rgba(0,0,0,0.07)',
   },
 
   smallLabel: {
     fontSize: '12px',
     color: '#667085',
-    marginTop: '25px'
+    marginTop: '25px',
   },
 
   coverage: {
     fontSize: '27px',
-    color: '#101828'
+    color: '#101828',
   },
 
   price: {
     color: '#1456a0',
-    marginTop: '20px'
+    marginTop: '20px',
   },
 
   perYear: {
     fontSize: '11px',
     color: '#667085',
-    fontWeight: 'normal'
+    fontWeight: 'normal',
   },
 
   benefits: {
     listStyle: 'none',
     padding: 0,
-    lineHeight: '2.5'
+    lineHeight: '2.5',
   },
 
   chooseButton: {
@@ -454,7 +466,7 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    marginTop: '15px'
+    marginTop: '15px',
   },
 
   overlay: {
@@ -465,7 +477,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '15px',
-    zIndex: 1000
+    zIndex: 1000,
   },
 
   modal: {
@@ -478,7 +490,7 @@ const styles = {
     borderRadius: '15px',
     padding: '30px',
     boxSizing: 'border-box',
-    textAlign: 'center'
+    textAlign: 'center',
   },
 
   closeButton: {
@@ -488,7 +500,7 @@ const styles = {
     border: 'none',
     background: 'none',
     fontSize: '25px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
 
   detail: {
@@ -497,7 +509,7 @@ const styles = {
     gap: '12px',
     padding: '17px 0',
     borderBottom: '1px solid #eee',
-    textAlign: 'left'
+    textAlign: 'left',
   },
 
   select: {
@@ -505,7 +517,7 @@ const styles = {
     padding: '13px',
     border: '1px solid #ddd',
     borderRadius: '8px',
-    marginBottom: '15px'
+    marginBottom: '15px',
   },
 
   notice: {
@@ -513,7 +525,7 @@ const styles = {
     padding: '13px',
     borderRadius: '8px',
     color: '#806000',
-    fontSize: '13px'
+    fontSize: '13px',
   },
 
   payButton: {
@@ -525,22 +537,22 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    marginTop: '12px'
+    marginTop: '12px',
   },
 
   backButton: {
     border: 'none',
     background: 'none',
     padding: '15px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
 
   error: {
     color: '#b42318',
     background: '#fee4e2',
     padding: '10px',
-    borderRadius: '8px'
-  }
+    borderRadius: '8px',
+  },
 };
 
 export default HealthInsurance;

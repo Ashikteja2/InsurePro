@@ -5,58 +5,45 @@ import { Link } from "react-router-dom";
 export default function MyPolicies() {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  // Load customer policies from backend
   useEffect(() => {
-    const fetchPolicies = async () => {
-      try {
-        const savedCustomer = localStorage.getItem("insureproCustomer");
+    try {
+      const savedPolicies = JSON.parse(
+        localStorage.getItem("insureproPolicies") || "[]"
+      );
 
-        if (!savedCustomer) {
-          setError("Please login to view your policies.");
-          return;
-        }
+      const normalizedPolicies = savedPolicies.map((policy) => ({
+        ...policy,
+        name:
+          policy.name ||
+          policy.planName ||
+          policy.policyName ||
+          "Insurance Policy",
+        coverage:
+          policy.coverage ||
+          policy.coverageValue ||
+          0,
+        premium:
+          policy.premium ||
+          policy.amount ||
+          0,
+      }));
 
-        const customer = JSON.parse(savedCustomer);
-        const customerId = customer.customerId ?? customer.id;
-
-        if (!customerId) {
-          setError("Customer ID not found. Please login again.");
-          return;
-        }
-
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8082'}/api/policies/customer/${customerId}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Unable to load policies.");
-        }
-
-        const data = await response.json();
-
-        setPolicies(Array.isArray(data) ? data : []);
-
-      } catch (err) {
-        setError(err.message || "Something went wrong.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPolicies();
+      setPolicies(normalizedPolicies);
+    } catch (error) {
+      console.error("Unable to load policies:", error);
+      setPolicies([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Convert formatted coverage/premium strings into numbers
   const parseAmount = (value) => {
     if (typeof value === "number") {
       return Number.isFinite(value) ? value : 0;
     }
 
-    if (value === null || value === undefined || value === "") {
-      return 0;
-    }
+    if (!value) return 0;
 
     const text = String(value)
       .toLowerCase()
@@ -66,9 +53,7 @@ export default function MyPolicies() {
 
     const amount = parseFloat(text);
 
-    if (!Number.isFinite(amount)) {
-      return 0;
-    }
+    if (!Number.isFinite(amount)) return 0;
 
     if (text.includes("crore")) {
       return amount * 10000000;
@@ -81,20 +66,18 @@ export default function MyPolicies() {
     return amount;
   };
 
-  // Format amount in Indian currency
-  const formatCurrency = (amount) => {
-    return parseAmount(amount).toLocaleString("en-IN", {
+  const formatCurrency = (value) => {
+    return parseAmount(value).toLocaleString("en-IN", {
       style: "currency",
       currency: "INR",
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     });
   };
 
-  // Format policy dates
   const formatDate = (date) => {
     if (!date) return "Not available";
 
-    const parsedDate = new Date(date + "T00:00:00");
+    const parsedDate = new Date(date);
 
     if (Number.isNaN(parsedDate.getTime())) {
       return "Not available";
@@ -103,46 +86,42 @@ export default function MyPolicies() {
     return parsedDate.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
-  // Calculate active policies
   const activePolicies = policies.filter(
     (policy) =>
       String(policy.status || "").toLowerCase() === "active"
   );
 
-  // Calculate total coverage
   const totalCoverage = policies.reduce(
     (total, policy) => total + parseAmount(policy.coverage),
     0
   );
 
-  // Calculate total annual premium
   const totalPremium = policies.reduce(
     (total, policy) => total + parseAmount(policy.premium),
     0
   );
 
-  // Show policy details
   const viewPolicyDetails = (policy) => {
     window.alert(
       "Policy Number: " + policy.policyNumber +
       "\nPolicy Name: " + policy.name +
       "\nType: " + policy.type +
+      "\nVehicle: " + (policy.vehicleType || "Not applicable") +
       "\nStart Date: " + formatDate(policy.startDate) +
       "\nExpiry Date: " + formatDate(policy.expiryDate) +
       "\nCoverage: " + formatCurrency(policy.coverage) +
-      "\nPremium: " + formatCurrency(policy.premium)
+      "\nPremium: " + formatCurrency(policy.premium) +
+      "\nPayment Method: " + (policy.paymentMethod || "Not available")
     );
   };
 
   return (
     <div className="policies-page">
-
       <style>{`
-
         * {
           box-sizing: border-box;
         }
@@ -154,8 +133,6 @@ export default function MyPolicies() {
           color: #102b50;
           font-family: Arial, sans-serif;
         }
-
-        /* Sidebar */
 
         .policies-sidebar {
           width: 250px;
@@ -200,8 +177,6 @@ export default function MyPolicies() {
           color: #2168ef;
           font-weight: bold;
         }
-
-        /* Main content */
 
         .policies-main {
           flex: 1;
@@ -255,9 +230,8 @@ export default function MyPolicies() {
           padding: 14px 22px;
           border-radius: 10px;
           font-weight: bold;
+          white-space: nowrap;
         }
-
-        /* Summary cards */
 
         .policies-summary {
           display: grid;
@@ -283,8 +257,6 @@ export default function MyPolicies() {
           margin: 0;
           font-size: 26px;
         }
-
-        /* Policy section */
 
         .policy-section {
           background: white;
@@ -358,8 +330,6 @@ export default function MyPolicies() {
           font-size: 13px;
         }
 
-        /* Policy details */
-
         .policy-details {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -377,8 +347,6 @@ export default function MyPolicies() {
         .policy-details strong {
           font-size: 15px;
         }
-
-        /* Buttons */
 
         .policy-actions {
           display: flex;
@@ -401,8 +369,6 @@ export default function MyPolicies() {
           background: #edf3ff;
         }
 
-        /* Messages */
-
         .message {
           padding: 25px;
           text-align: center;
@@ -411,15 +377,9 @@ export default function MyPolicies() {
           margin-bottom: 20px;
         }
 
-        .error-message {
-          color: #dc2626;
-        }
-
         .empty-message {
           color: #718096;
         }
-
-        /* Responsive design */
 
         @media(max-width: 850px) {
           .policies-sidebar {
@@ -463,12 +423,19 @@ export default function MyPolicies() {
           }
         }
 
+        @media print {
+          .policies-sidebar,
+          .policy-actions {
+            display: none;
+          }
+
+          .policies-page {
+            display: block;
+          }
+        }
       `}</style>
 
-      {/* Sidebar */}
-
       <aside className="policies-sidebar">
-
         <div className="policies-logo">
           🛡 Insure<span>Pro</span>
         </div>
@@ -479,56 +446,26 @@ export default function MyPolicies() {
 
         <nav className="policies-nav">
           <Link to="/dashboard">▦ Dashboard</Link>
-
-          <Link to="/my-policies" className="active">
-            ▤ My Policies
-          </Link>
-
-          <Link to="/health-insurance">
-            ♡ Health Insurance
-          </Link>
-
-          <Link to="/vehicle-insurance">
-            🚗 Vehicle Insurance
-          </Link>
-
-          <Link to="/premium-calculator">
-            ▦ Premium Calculator
-          </Link>
-
-          <Link to="/my-claims">
-            ▤ My Claims
-          </Link>
-
-          <Link to="/payments">
-            ▣ Payments
-          </Link>
-
-          <Link to="/profile">
-            ♙ My Profile
-          </Link>
+          <Link to="/my-policies" className="active">▤ My Policies</Link>
+          <Link to="/health-insurance">♡ Health Insurance</Link>
+          <Link to="/vehicle-insurance">🚗 Vehicle Insurance</Link>
+          <Link to="/premium-calculator">▦ Premium Calculator</Link>
+          <Link to="/my-claims">▤ My Claims</Link>
+          <Link to="/payments">▣ Payments</Link>
+          <Link to="/profile">♙ My Profile</Link>
         </nav>
-
       </aside>
 
-      {/* Main section */}
-
       <main className="policies-main">
-
         <header className="policies-header">
           <small>CUSTOMER PORTAL</small>
           <h2>My Insurance Policies</h2>
         </header>
 
         <div className="policies-content">
-
-          {/* Welcome section */}
-
           <div className="policies-welcome">
-
             <div>
               <h1>My Policies 📋</h1>
-
               <p>
                 View and manage all your insurance policies in one place.
               </p>
@@ -537,33 +474,13 @@ export default function MyPolicies() {
             <div className="policy-count">
               {activePolicies.length} Active Policies
             </div>
-
           </div>
 
-          {/* Loading */}
-
           {loading ? (
-
-            <div className="message">
-              Loading your policies...
-            </div>
-
-          ) : error ? (
-
-            /* Error message */
-
-            <div className="message error-message">
-              {error}
-            </div>
-
+            <div className="message">Loading your policies...</div>
           ) : (
-
             <>
-
-              {/* Summary cards */}
-
               <div className="policies-summary">
-
                 <div className="summary-card">
                   <p>Total Policies</p>
                   <h2>{policies.length}</h2>
@@ -578,31 +495,23 @@ export default function MyPolicies() {
                   <p>Total Coverage</p>
                   <h2>{formatCurrency(totalCoverage)}</h2>
                 </div>
-
               </div>
 
-              {/* Policy list */}
-
               <section className="policy-section">
-
                 <h2>All Insurance Policies</h2>
 
                 {policies.length === 0 ? (
-
                   <div className="message empty-message">
                     You don't have any insurance policies yet.
+                    <p>
+                      Purchase a Health or Vehicle Insurance plan to see it here.
+                    </p>
                   </div>
-
                 ) : (
-
                   policies.map((policy) => (
-
-                    <div className="policy-card" key={policy.id}>
-
+                    <div className="policy-card" key={policy.id || policy.policyNumber}>
                       <div className="policy-top">
-
                         <div className="policy-name">
-
                           <div className="policy-icon">
                             {String(policy.type || "").toLowerCase() === "health"
                               ? "❤️"
@@ -611,81 +520,71 @@ export default function MyPolicies() {
 
                           <div>
                             <h3>{policy.name}</h3>
-
                             <p>
                               Policy Number: {policy.policyNumber}
                             </p>
+                            {policy.vehicleType && (
+                              <p>Vehicle: {policy.vehicleType}</p>
+                            )}
                           </div>
-
                         </div>
 
-                        <span className={
-                          String(policy.status || "").toLowerCase() === "active"
-                            ? "active-status"
-                            : "inactive-status"
-                        }>
+                        <span
+                          className={
+                            String(policy.status || "").toLowerCase() === "active"
+                              ? "active-status"
+                              : "inactive-status"
+                          }
+                        >
                           ✓ {policy.status || "Unknown"}
                         </span>
-
                       </div>
 
-                      {/* Policy details */}
-
                       <div className="policy-details">
+                        <div>
+                          <p>Policy Type</p>
+                          <strong>{policy.type || "Insurance"}</strong>
+                        </div>
 
                         <div>
                           <p>Coverage Amount</p>
-
-                          <strong>
-                            {formatCurrency(policy.coverage)}
-                          </strong>
+                          <strong>{formatCurrency(policy.coverage)}</strong>
                         </div>
 
                         <div>
                           <p>Annual Premium</p>
+                          <strong>{formatCurrency(policy.premium)}</strong>
+                        </div>
 
-                          <strong>
-                            {formatCurrency(policy.premium)}
-                          </strong>
+                        <div>
+                          <p>Start Date</p>
+                          <strong>{formatDate(policy.startDate)}</strong>
                         </div>
 
                         <div>
                           <p>Valid Until</p>
-
-                          <strong>
-                            {formatDate(policy.expiryDate)}
-                          </strong>
+                          <strong>{formatDate(policy.expiryDate)}</strong>
                         </div>
 
+                        <div>
+                          <p>Payment Method</p>
+                          <strong>{policy.paymentMethod || "Not available"}</strong>
+                        </div>
                       </div>
 
-                      {/* Action buttons */}
-
                       <div className="policy-actions">
-
-                        <button
-                          onClick={() => viewPolicyDetails(policy)}
-                        >
+                        <button onClick={() => viewPolicyDetails(policy)}>
                           View Details
                         </button>
 
-                        <button
-                          onClick={() => window.print()}
-                        >
+                        <button onClick={() => window.print()}>
                           Download / Print
                         </button>
-
                       </div>
-
                     </div>
-
                   ))
-
                 )}
-
               </section>
-
-              {/* Total premium */}
 
               <p style={{
                 textAlign: "right",
@@ -693,19 +592,12 @@ export default function MyPolicies() {
                 marginTop: "25px"
               }}>
                 Total Annual Premium:{" "}
-                <strong>
-                  {formatCurrency(totalPremium)}
-                </strong>
+                <strong>{formatCurrency(totalPremium)}</strong>
               </p>
-
             </>
-
           )}
-
         </div>
-
       </main>
-
     </div>
   );
 }
