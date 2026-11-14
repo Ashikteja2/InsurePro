@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API_URL from '../api';
 
 function Login() {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setError('');
 
@@ -23,56 +22,50 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/customers/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password: password
-          })
-        }
+      // Get registered demo accounts from browser storage
+      const users = JSON.parse(
+        localStorage.getItem('insurepro_demo_users') || '[]'
       );
 
-      const data = await response.json();
+      // Find account using email and password
+      const loggedInUser = users.find(
+        (user) =>
+          user.email === email.trim().toLowerCase() &&
+          user.password === password
+      );
 
-      if (!response.ok) {
-        throw new Error(
-          data.message || 'Invalid email or password.'
-        );
+      if (!loggedInUser) {
+        setError('Invalid email or password. Please register first.');
+        setLoading(false);
+        return;
       }
 
-      const customerId = data.customerId ?? data.id;
-
-      if (!customerId) {
-        throw new Error(
-          'Customer ID was not received from the server.'
-        );
-      }
+      // Save logged-in customer details
+      const customer = {
+        customerId: loggedInUser.id,
+        id: loggedInUser.id,
+        fullName: loggedInUser.name,
+        name: loggedInUser.name,
+        email: loggedInUser.email,
+        phone: loggedInUser.phone
+      };
 
       localStorage.setItem(
         'insureproCustomer',
-        JSON.stringify({
-          customerId: customerId,
-          id: customerId,
-          fullName: data.fullName || '',
-          email: data.email || email.trim(),
-          phone: data.phone || ''
-        })
+        JSON.stringify(customer)
       );
 
+      localStorage.setItem(
+        'insurepro_logged_in',
+        'true'
+      );
+
+      // Go to dashboard
       navigate('/dashboard');
 
     } catch (err) {
       console.error('Login error:', err);
-
-      setError(
-        err.message || 'Unable to connect to the backend server.'
-      );
-
+      setError('Unable to login. Please try again.');
     } finally {
       setLoading(false);
     }
