@@ -1,105 +1,116 @@
 
 import React, { useEffect, useState } from 'react';
 
-const API_URL = 'http://localhost:8082';
-
 function Payments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadPayments = async () => {
-      try {
-        const customer = JSON.parse(
-          localStorage.getItem('insureproCustomer') || 'null'
-        );
+    try {
+      const savedPayments = JSON.parse(
+        localStorage.getItem('insureproPayments') || '[]'
+      );
 
-        const customerId = customer?.customerId ?? customer?.id;
+      const savedPolicies = JSON.parse(
+        localStorage.getItem('insureproPolicies') || '[]'
+      );
 
-        if (!customerId) {
-          setError('Please login to view your payments.');
-          return;
-        }
+      // Prefer saved payment records.
+      // If none exist, use purchased policies as payment history.
+      const records = savedPayments.length > 0
+        ? savedPayments
+        : savedPolicies;
 
-        const response = await fetch(
-          `${API_URL}/api/policies/customer/${customerId}`
-        );
+      const normalizedPayments = records.map((item, index) => ({
+        ...item,
+        id: item.id || index,
+        policyNumber: item.policyNumber || '-',
+        name: item.planName || item.name || 'Insurance Policy',
+        type: item.type || 'Insurance',
+        amount: Number(
+          String(item.amount ?? item.premium ?? 0).replace(/[^\d.]/g, '')
+        ) || 0,
+        paymentDate:
+          item.paymentDate || item.purchaseDate || item.startDate || '',
+        status: item.status || 'Recorded',
+        paymentMethod: item.paymentMethod || 'Not available'
+      }));
 
-        if (!response.ok) {
-          throw new Error('Unable to retrieve your policies.');
-        }
-
-        const data = await response.json();
-
-        const records = Array.isArray(data) ? data : [];
-
-        setPayments(records.map((policy) => ({
-          ...policy,
-          amount: Number(String(policy.premium).replace(/[^\d.]/g, '')) || 0
-        })));
-      } catch (err) {
-        setError(err.message || 'Unable to connect to the backend.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPayments();
+      setPayments(normalizedPayments);
+    } catch (error) {
+      console.error('Unable to load payment records:', error);
+      setPayments([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const formatMoney = (amount) =>
-    `₹${Number(amount).toLocaleString('en-IN')}`;
+    `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+
+  const formatDate = (date) => {
+    if (!date) return '-';
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) return '-';
+
+    return parsedDate.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
 
   const totalPaid = payments.reduce(
     (total, payment) => total + payment.amount,
     0
   );
 
+  const activePolicies = payments.filter(
+    (payment) => String(payment.status).toLowerCase() === 'active'
+  ).length;
+
   return (
     <div style={styles.page}>
       <h1>Payments</h1>
+
       <p style={styles.subtitle}>
         View your insurance policy premiums and payment records.
       </p>
 
       <div style={styles.summaryGrid}>
         <div style={styles.summaryCard}>
-          <span>Total Policies</span>
-          <h2>{payments.length}</h2>
+          <span>Total Records</span>
+          <h2>{loading ? '...' : payments.length}</h2>
         </div>
 
         <div style={styles.summaryCard}>
           <span>Total Premium Amount</span>
-          <h2>{formatMoney(totalPaid)}</h2>
+          <h2>{loading ? '...' : formatMoney(totalPaid)}</h2>
         </div>
 
         <div style={styles.summaryCard}>
           <span>Active Policies</span>
-          <h2>
-            {payments.filter(
-              (p) => String(p.status).toLowerCase() === 'active'
-            ).length}
-          </h2>
+          <h2>{loading ? '...' : activePolicies}</h2>
         </div>
       </div>
 
       <div style={styles.card}>
         <h2>Payment History</h2>
 
-        {loading && <p style={styles.subtitle}>Loading payment records...</p>}
-
-        {!loading && error && (
-          <p style={styles.error}>{error}</p>
+        {loading && (
+          <p style={styles.subtitle}>Loading payment records...</p>
         )}
 
-        {!loading && !error && payments.length === 0 && (
+        {!loading && payments.length === 0 && (
           <p style={styles.subtitle}>
-            No purchased policies were found for this account.
+            No payment records found. Purchase a Health or Vehicle
+            Insurance plan to see your records here.
           </p>
         )}
 
-        {!loading && !error && payments.length > 0 && (
+        {!loading && payments.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
             <table style={styles.table}>
               <thead>
@@ -107,23 +118,25 @@ function Payments() {
                   <th>Policy Number</th>
                   <th>Policy Name</th>
                   <th>Type</th>
-                  <th>Premium</th>
-                  <th>Purchase Date</th>
+                  <th>Amount</th>
+                  <th>Payment Method</th>
+                  <th>Payment Date</th>
                   <th>Status</th>
                 </tr>
               </thead>
 
               <tbody>
                 {payments.map((payment) => (
-                  <tr key={payment.id || payment.policyNumber}>
-                    <td>{payment.policyNumber || '-'}</td>
-                    <td>{payment.name || '-'}</td>
-                    <td>{payment.type || '-'}</td>
+                  <tr key={payment.id}>
+                    <td>{payment.policyNumber}</td>
+                    <td>{payment.name}</td>
+                    <td>{payment.type}</td>
                     <td>{formatMoney(payment.amount)}</td>
-                    <td>{payment.startDate || '-'}</td>
+                    <td>{payment.paymentMethod}</td>
+                    <td>{formatDate(payment.paymentDate)}</td>
                     <td>
                       <span style={styles.status}>
-                        {payment.status || 'Recorded'}
+                        {payment.status}
                       </span>
                     </td>
                   </tr>
@@ -134,9 +147,8 @@ function Payments() {
         )}
 
         <p style={styles.note}>
-          Payment records are based on saved policies. Your current backend
-          does not yet store separate payment transactions or payment gateway
-          confirmations. No real payment is processed here.
+          These are frontend demo payment records stored in your browser.
+          No real payment is processed and no payment gateway is connected.
         </p>
       </div>
     </div>
@@ -151,31 +163,40 @@ const styles = {
     fontFamily: 'Arial, sans-serif',
     color: '#17365d'
   },
-  subtitle: { color: '#718096', lineHeight: 1.6 },
+
+  subtitle: {
+    color: '#718096',
+    lineHeight: 1.6
+  },
+
   summaryGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
     gap: '20px',
     margin: '25px 0'
   },
+
   summaryCard: {
     background: '#fff',
     padding: '24px',
     borderRadius: '13px',
     boxShadow: '0 4px 18px rgba(0,0,0,.05)'
   },
+
   card: {
     background: '#fff',
     padding: '25px',
     borderRadius: '14px',
     boxShadow: '0 4px 18px rgba(0,0,0,.05)'
   },
+
   table: {
     width: '100%',
-    minWidth: '750px',
+    minWidth: '900px',
     borderCollapse: 'collapse',
     textAlign: 'left'
   },
+
   status: {
     background: '#e5f7ee',
     color: '#187443',
@@ -183,12 +204,7 @@ const styles = {
     borderRadius: '20px',
     fontSize: '12px'
   },
-  error: {
-    background: '#fee4e2',
-    color: '#b42318',
-    padding: '12px',
-    borderRadius: '8px'
-  },
+
   note: {
     marginTop: '20px',
     color: '#718096',

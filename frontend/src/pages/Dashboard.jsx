@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8082';
-
 function Dashboard() {
   const navigate = useNavigate();
 
@@ -11,6 +9,7 @@ function Dashboard() {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load customer and policies from browser storage.
   useEffect(() => {
     try {
       const savedCustomer = JSON.parse(
@@ -24,64 +23,55 @@ function Dashboard() {
 
       setCustomer(savedCustomer);
 
-      const customerId =
-        savedCustomer.customerId ?? savedCustomer.id;
+      const savedPolicies = JSON.parse(
+        localStorage.getItem('insureproPolicies') || '[]'
+      );
 
-      if (!customerId) {
-        navigate('/login');
-        return;
-      }
-
-      const loadPolicies = async () => {
-        try {
-          const response = await fetch(
-            `${API_URL}/api/policies/customer/${customerId}`
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            setPolicies(Array.isArray(data) ? data : []);
-          }
-        } catch (error) {
-          console.error('Unable to load policies:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadPolicies();
+      setPolicies(
+        Array.isArray(savedPolicies) ? savedPolicies : []
+      );
     } catch (error) {
-      console.error('Customer information error:', error);
-      navigate('/login');
+      console.error('Unable to load dashboard information:', error);
+      setPolicies([]);
+    } finally {
+      setLoading(false);
     }
   }, [navigate]);
 
+  // Logout customer.
   const handleLogout = () => {
     localStorage.removeItem('insureproCustomer');
     navigate('/login');
   };
 
-  const formatMoney = (value) => {
-    const amount = Number(String(value ?? '').replace(/[^\d.]/g, ''));
-
-    if (!Number.isFinite(amount)) {
-      return '₹0';
+  // Convert premium or coverage into a number.
+  const parseAmount = (value) => {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : 0;
     }
 
-    return `₹${amount.toLocaleString('en-IN')}`;
+    if (!value) return 0;
+
+    const amount = parseFloat(
+      String(value).replace(/[^\d.]/g, '')
+    );
+
+    return Number.isFinite(amount) ? amount : 0;
+  };
+
+  const formatMoney = (value) => {
+    return `₹${parseAmount(value).toLocaleString('en-IN')}`;
   };
 
   const activePolicies = policies.filter(
-    (policy) => String(policy.status).toLowerCase() === 'active'
+    (policy) =>
+      String(policy.status || '').toLowerCase() === 'active'
   );
 
-  const totalPremium = policies.reduce((total, policy) => {
-    const amount = Number(
-      String(policy.premium ?? '').replace(/[^\d.]/g, '')
-    );
-
-    return total + (Number.isFinite(amount) ? amount : 0);
-  }, 0);
+  const totalPremium = policies.reduce(
+    (total, policy) => total + parseAmount(policy.premium),
+    0
+  );
 
   const firstName = customer?.fullName
     ? customer.fullName.split(' ')[0]
@@ -100,6 +90,7 @@ function Dashboard() {
 
   return (
     <div style={styles.app}>
+
       {/* Sidebar */}
       <aside style={styles.sidebar}>
         <div style={styles.logo}>
@@ -116,7 +107,9 @@ function Dashboard() {
               to={item.path}
               style={{
                 ...styles.menuLink,
-                ...(item.path === '/dashboard' ? styles.activeLink : {})
+                ...(item.path === '/dashboard'
+                  ? styles.activeLink
+                  : {})
               }}
             >
               <span style={styles.menuIcon}>{item.icon}</span>
@@ -131,7 +124,10 @@ function Dashboard() {
             <p>We are here to support you.</p>
           </div>
 
-          <button onClick={handleLogout} style={styles.logoutButton}>
+          <button
+            onClick={handleLogout}
+            style={styles.logoutButton}
+          >
             ↪ Logout
           </button>
         </div>
@@ -139,6 +135,7 @@ function Dashboard() {
 
       {/* Main content */}
       <main style={styles.main}>
+
         <header style={styles.topbar}>
           <div>
             <h2 style={styles.topTitle}>Customer Dashboard</h2>
@@ -151,20 +148,28 @@ function Dashboard() {
             <div style={styles.avatar}>
               {firstName.charAt(0).toUpperCase()}
             </div>
+
             <div>
               <strong>{customer?.fullName || 'Customer'}</strong>
-              <p style={styles.email}>{customer?.email || ''}</p>
+              <p style={styles.email}>
+                {customer?.email || ''}
+              </p>
             </div>
           </div>
         </header>
 
+        {/* Welcome section */}
         <section style={styles.welcome}>
           <div>
-            <p style={styles.welcomeSmall}>WELCOME TO INSUREPRO</p>
+            <p style={styles.welcomeSmall}>
+              WELCOME TO INSUREPRO
+            </p>
+
             <h1>Hello, {firstName}!</h1>
+
             <p>
-              Your protection matters. Manage your policies and insurance
-              services from here.
+              Your protection matters. Manage your policies and
+              insurance services from here.
             </p>
           </div>
 
@@ -173,6 +178,7 @@ function Dashboard() {
 
         {/* Summary cards */}
         <section style={styles.statsGrid}>
+
           <div style={styles.statCard}>
             <div style={styles.statIcon}>▤</div>
             <p>Total Policies</p>
@@ -190,93 +196,127 @@ function Dashboard() {
           <div style={styles.statCard}>
             <div style={styles.statIcon}>₹</div>
             <p>Total Premium</p>
-            <h2>{loading ? '...' : formatMoney(totalPremium)}</h2>
+            <h2>
+              {loading ? '...' : formatMoney(totalPremium)}
+            </h2>
             <span>Recorded policy premiums</span>
           </div>
+
         </section>
 
-        {/* Quick actions */}
+        {/* Quick services */}
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Quick Services</h2>
 
           <div style={styles.servicesGrid}>
+
             <Link to="/health-insurance" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>♡</span>
               <h3>Health Insurance</h3>
               <p>Explore health coverage plans.</p>
-              <span style={styles.serviceLink}>Explore Plans →</span>
+              <span style={styles.serviceLink}>
+                Explore Plans →
+              </span>
             </Link>
 
             <Link to="/vehicle-insurance" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>🚗</span>
               <h3>Vehicle Insurance</h3>
               <p>Explore car and bike protection.</p>
-              <span style={styles.serviceLink}>Explore Plans →</span>
+              <span style={styles.serviceLink}>
+                Explore Plans →
+              </span>
             </Link>
 
             <Link to="/premium-calculator" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>▦</span>
               <h3>Premium Calculator</h3>
               <p>Calculate an estimated premium.</p>
-              <span style={styles.serviceLink}>Calculate Now →</span>
+              <span style={styles.serviceLink}>
+                Calculate Now →
+              </span>
             </Link>
 
             <Link to="/my-claims" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>▤</span>
               <h3>My Claims</h3>
               <p>Submit and view demo claims.</p>
-              <span style={styles.serviceLink}>View Claims →</span>
+              <span style={styles.serviceLink}>
+                View Claims →
+              </span>
             </Link>
 
             <Link to="/payments" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>▣</span>
               <h3>Payments</h3>
               <p>View your policy premium records.</p>
-              <span style={styles.serviceLink}>View Payments →</span>
+              <span style={styles.serviceLink}>
+                View Payments →
+              </span>
             </Link>
 
             <Link to="/my-policies" style={styles.serviceCard}>
               <span style={styles.serviceIcon}>📄</span>
               <h3>My Policies</h3>
               <p>Review your purchased policies.</p>
-              <span style={styles.serviceLink}>View Policies →</span>
+              <span style={styles.serviceLink}>
+                View Policies →
+              </span>
             </Link>
+
           </div>
         </section>
 
         {/* Recent policies */}
         <section style={styles.section}>
+
           <div style={styles.sectionHeader}>
             <h2 style={styles.sectionTitle}>Recent Policies</h2>
+
             <Link to="/my-policies" style={styles.viewAll}>
               View All →
             </Link>
           </div>
 
           <div style={styles.policyBox}>
+
             {loading ? (
-              <p style={styles.emptyText}>Loading policies...</p>
+              <p style={styles.emptyText}>
+                Loading policies...
+              </p>
             ) : policies.length === 0 ? (
               <div style={styles.empty}>
                 <span style={{ fontSize: '35px' }}>📄</span>
                 <h3>No Policies Yet</h3>
                 <p>Choose an insurance plan to get started.</p>
-                <Link to="/health-insurance" style={styles.primaryButton}>
+
+                <Link
+                  to="/health-insurance"
+                  style={styles.primaryButton}
+                >
                   Explore Insurance
                 </Link>
               </div>
             ) : (
-              policies.slice(0, 5).map((policy) => (
-                <div key={policy.id || policy.policyNumber} style={styles.policyRow}>
+              policies.slice(0, 5).map((policy, index) => (
+                <div
+                  key={policy.id || policy.policyNumber || index}
+                  style={styles.policyRow}
+                >
                   <div style={styles.policyIcon}>
-                    {String(policy.type).toLowerCase() === 'vehicle'
+                    {String(policy.type || '').toLowerCase() === 'vehicle'
                       ? '🚗'
                       : '♡'}
                   </div>
 
                   <div style={styles.policyDetails}>
-                    <strong>{policy.name || 'Insurance Policy'}</strong>
-                    <span>{policy.policyNumber || 'No policy number'}</span>
+                    <strong>
+                      {policy.name || policy.planName || 'Insurance Policy'}
+                    </strong>
+
+                    <span>
+                      {policy.policyNumber || 'No policy number'}
+                    </span>
                   </div>
 
                   <div style={styles.policyPremium}>
@@ -290,12 +330,14 @@ function Dashboard() {
                 </div>
               ))
             )}
+
           </div>
         </section>
 
         <footer style={styles.footer}>
           © {new Date().getFullYear()} InsurePro. All rights reserved.
         </footer>
+
       </main>
     </div>
   );
