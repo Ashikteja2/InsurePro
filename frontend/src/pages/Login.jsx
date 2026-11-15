@@ -22,15 +22,15 @@ function Login() {
     setLoading(true);
 
     try {
-      // Get registered demo accounts from browser storage
+      // Get all registered users
       const users = JSON.parse(
         localStorage.getItem('insurepro_demo_users') || '[]'
       );
 
-      // Find account using email and password
+      // Find the matching account
       const loggedInUser = users.find(
         (user) =>
-          user.email === email.trim().toLowerCase() &&
+          user.email?.toLowerCase() === email.trim().toLowerCase() &&
           user.password === password
       );
 
@@ -40,7 +40,7 @@ function Login() {
         return;
       }
 
-      // Save logged-in customer details
+      // Create the logged-in customer object
       const customer = {
         customerId: loggedInUser.id,
         id: loggedInUser.id,
@@ -50,18 +50,20 @@ function Login() {
         phone: loggedInUser.phone
       };
 
+      // Clear previous customer session
+      localStorage.removeItem('insureproCustomer');
+      sessionStorage.removeItem('customer');
+
+      // Save the newly logged-in customer
       localStorage.setItem(
         'insureproCustomer',
         JSON.stringify(customer)
       );
 
-      localStorage.setItem(
-        'insurepro_logged_in',
-        'true'
-      );
+      localStorage.setItem('insurepro_logged_in', 'true');
 
-      // Go to dashboard
-      navigate('/dashboard');
+      // Navigate to dashboard
+      navigate('/dashboard', { replace: true });
 
     } catch (err) {
       console.error('Login error:', err);
@@ -97,6 +99,7 @@ function Login() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
           style={styles.input}
+          autoComplete="email"
           required
         />
 
@@ -110,6 +113,7 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
           style={styles.input}
+          autoComplete="current-password"
           required
         />
 
@@ -128,6 +132,12 @@ function Login() {
           Don't have an account?{' '}
           <Link to="/register" style={styles.link}>
             Register here
+          </Link>
+        </p>
+
+        <p style={styles.footer}>
+          <Link to="/" style={styles.link}>
+            Back to Home
           </Link>
         </p>
 
@@ -222,7 +232,8 @@ const styles = {
 
   link: {
     color: '#1456a0',
-    fontWeight: '600'
+    fontWeight: '600',
+    textDecoration: 'none'
   }
 };
 
