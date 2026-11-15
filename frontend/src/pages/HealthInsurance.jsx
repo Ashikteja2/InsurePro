@@ -13,8 +13,8 @@ const healthPlans = [
       'Pre and post hospitalization',
       'Daycare procedures',
       'Ambulance expenses',
-      '24/7 customer support',
-    ],
+      '24/7 customer support'
+    ]
   },
   {
     id: 2,
@@ -27,8 +27,8 @@ const healthPlans = [
       'Higher coverage limits',
       'Additional wellness benefits',
       'Extended hospitalization',
-      'Priority customer support',
-    ],
+      'Priority customer support'
+    ]
   },
   {
     id: 3,
@@ -41,9 +41,9 @@ const healthPlans = [
       'Premium hospitalization coverage',
       'Enhanced medical benefits',
       'Higher claim limits',
-      'Priority assistance',
-    ],
-  },
+      'Priority assistance'
+    ]
+  }
 ];
 
 function HealthInsurance() {
@@ -59,7 +59,6 @@ function HealthInsurance() {
     setSelectedPlan(plan);
   };
 
-  // Frontend-only demo purchase.
   const handlePayment = () => {
     if (!selectedPlan || loading) return;
 
@@ -73,8 +72,10 @@ function HealthInsurance() {
       customer = null;
     }
 
-    if (!customer) {
-      alert('Please login before purchasing a policy.');
+    const customerId = customer?.customerId ?? customer?.id;
+
+    if (!customer || !customerId) {
+      alert('Please login again before purchasing.');
       window.location.href = '/login';
       return;
     }
@@ -84,90 +85,73 @@ function HealthInsurance() {
 
     try {
       const now = new Date();
-
       const expiry = new Date(now);
       expiry.setFullYear(expiry.getFullYear() + 1);
 
       const policyNumber = 'INS-' + Date.now();
 
-      // Create health insurance policy.
       const policy = {
         id: policyNumber,
-        policyNumber: policyNumber,
-
-        customerId: customer.customerId ?? customer.id ?? null,
-        customerName: customer.fullName || '',
+        policyNumber,
+        customerId: String(customerId),
+        customerName: customer.fullName || customer.name || '',
         email: customer.email || '',
-
         name: selectedPlan.name,
         planName: selectedPlan.name,
-
         type: 'Health',
-
         coverage: selectedPlan.coverage,
         coverageValue: selectedPlan.coverageValue,
-
         premium: String(selectedPlan.premium),
-
         status: 'Active',
-        paymentMethod: paymentMethod,
-
+        paymentMethod,
         purchaseDate: now.toISOString(),
         startDate: now.toISOString(),
-        expiryDate: expiry.toISOString(),
+        expiryDate: expiry.toISOString()
       };
 
-      // Get existing policies.
       const existingPolicies = JSON.parse(
         localStorage.getItem('insureproPolicies') || '[]'
       );
 
-      // Add new policy.
       existingPolicies.push(policy);
 
-      // Save policies in browser storage.
       localStorage.setItem(
         'insureproPolicies',
         JSON.stringify(existingPolicies)
       );
 
-      // Create demo payment record.
       const payment = {
         id: 'PAY-' + Date.now(),
-        policyNumber: policyNumber,
+        customerId: String(customerId),
+        customerName: customer.fullName || customer.name || '',
+        email: customer.email || '',
+        policyNumber,
         planName: selectedPlan.name,
         amount: selectedPlan.premium,
-        paymentMethod: paymentMethod,
+        paymentMethod,
         status: 'Successful',
-        paymentDate: now.toISOString(),
+        paymentDate: now.toISOString()
       };
 
-      // Get existing payments.
       const existingPayments = JSON.parse(
         localStorage.getItem('insureproPayments') || '[]'
       );
 
       existingPayments.push(payment);
 
-      // Save payment record.
       localStorage.setItem(
         'insureproPayments',
         JSON.stringify(existingPayments)
       );
 
       setPurchasedPolicy(policy);
-
       setMessage(
         'Demo payment successful! Your health policy has been created.'
       );
 
     } catch (error) {
       console.error('Health policy error:', error);
-
-      setMessage(
-        'Unable to save your policy. Please try again.'
-      );
-
+      setMessage('Unable to save your policy. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -175,8 +159,6 @@ function HealthInsurance() {
 
   return (
     <div style={styles.page}>
-
-      {/* Header */}
       <header style={styles.header}>
         <h1>Health Insurance Plans</h1>
         <p>
@@ -184,20 +166,13 @@ function HealthInsurance() {
         </p>
       </header>
 
-      {/* Health Plans */}
       <div style={styles.plans}>
-
         {healthPlans.map((plan) => (
-
           <div key={plan.id} style={styles.card}>
-
             <h2>{plan.name}</h2>
 
             <p style={styles.smallLabel}>SUM INSURED</p>
-
-            <h2 style={styles.coverage}>
-              {plan.coverage}
-            </h2>
+            <h2 style={styles.coverage}>{plan.coverage}</h2>
 
             <h2 style={styles.price}>
               ₹{plan.premium.toLocaleString('en-IN')}
@@ -212,9 +187,7 @@ function HealthInsurance() {
 
             <ul style={styles.benefits}>
               {plan.benefits.map((benefit) => (
-                <li key={benefit}>
-                  ✓ &nbsp; {benefit}
-                </li>
+                <li key={benefit}>✓ &nbsp; {benefit}</li>
               ))}
             </ul>
 
@@ -224,20 +197,13 @@ function HealthInsurance() {
             >
               Choose This Plan →
             </button>
-
           </div>
-
         ))}
-
       </div>
 
-      {/* Payment Modal */}
       {selectedPlan && !purchasedPolicy && (
-
         <div style={styles.overlay}>
-
           <div style={styles.modal}>
-
             <button
               style={styles.closeButton}
               onClick={() => {
@@ -250,10 +216,7 @@ function HealthInsurance() {
             </button>
 
             <h2>Demo Payment</h2>
-
-            <p>
-              Complete your sample payment to generate your policy.
-            </p>
+            <p>Complete your sample payment to generate your policy.</p>
 
             <div style={styles.detail}>
               <span>Selected plan</span>
@@ -291,17 +254,10 @@ function HealthInsurance() {
               Demo only: No real payment will be processed.
             </p>
 
-            {message && (
-              <p style={styles.error}>
-                {message}
-              </p>
-            )}
+            {message && <p style={styles.error}>{message}</p>}
 
             <button
-              style={{
-                ...styles.payButton,
-                opacity: loading ? 0.7 : 1,
-              }}
+              style={styles.payButton}
               onClick={handlePayment}
               disabled={loading}
             >
@@ -312,28 +268,18 @@ function HealthInsurance() {
 
             <button
               style={styles.backButton}
-              onClick={() => {
-                setSelectedPlan(null);
-                setMessage('');
-              }}
+              onClick={() => setSelectedPlan(null)}
               disabled={loading}
             >
               Back
             </button>
-
           </div>
-
         </div>
-
       )}
 
-      {/* Purchase Success Modal */}
       {purchasedPolicy && (
-
         <div style={styles.overlay}>
-
           <div style={styles.modal}>
-
             <h2 style={{ color: '#16834a' }}>
               Purchase Successful!
             </h2>
@@ -362,18 +308,9 @@ function HealthInsurance() {
               </strong>
             </div>
 
-            <div style={styles.detail}>
-              <span>Status</span>
-              <strong style={{ color: '#16834a' }}>
-                Active
-              </strong>
-            </div>
-
             <button
               style={styles.payButton}
               onClick={() => {
-                setSelectedPlan(null);
-                setPurchasedPolicy(null);
                 window.location.href = '/my-policies';
               }}
             >
@@ -389,13 +326,9 @@ function HealthInsurance() {
             >
               Close
             </button>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }
@@ -406,57 +339,48 @@ const styles = {
     background: '#f5f7fb',
     padding: '35px 5%',
     fontFamily: 'Arial, sans-serif',
-    color: '#172b4d',
+    color: '#172b4d'
   },
-
   header: {
     textAlign: 'center',
-    marginBottom: '35px',
+    marginBottom: '35px'
   },
-
   plans: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
     gap: '25px',
     maxWidth: '1200px',
-    margin: 'auto',
+    margin: 'auto'
   },
-
   card: {
     background: '#fff',
     borderRadius: '14px',
     padding: '25px',
-    boxShadow: '0 4px 18px rgba(0,0,0,0.07)',
+    boxShadow: '0 4px 18px rgba(0,0,0,0.07)'
   },
-
   smallLabel: {
     fontSize: '12px',
     color: '#667085',
-    marginTop: '25px',
+    marginTop: '25px'
   },
-
   coverage: {
     fontSize: '27px',
-    color: '#101828',
+    color: '#101828'
   },
-
   price: {
     color: '#1456a0',
-    marginTop: '20px',
+    marginTop: '20px'
   },
-
   perYear: {
     fontSize: '11px',
     color: '#667085',
-    fontWeight: 'normal',
+    fontWeight: 'normal'
   },
-
   benefits: {
     listStyle: 'none',
     padding: 0,
-    lineHeight: '2.5',
+    lineHeight: '2.5'
   },
-
   chooseButton: {
     width: '100%',
     padding: '14px',
@@ -466,9 +390,8 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    marginTop: '15px',
+    marginTop: '15px'
   },
-
   overlay: {
     position: 'fixed',
     inset: 0,
@@ -477,9 +400,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '15px',
-    zIndex: 1000,
+    zIndex: 1000
   },
-
   modal: {
     position: 'relative',
     background: '#fff',
@@ -490,9 +412,8 @@ const styles = {
     borderRadius: '15px',
     padding: '30px',
     boxSizing: 'border-box',
-    textAlign: 'center',
+    textAlign: 'center'
   },
-
   closeButton: {
     position: 'absolute',
     right: '15px',
@@ -500,34 +421,30 @@ const styles = {
     border: 'none',
     background: 'none',
     fontSize: '25px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
-
   detail: {
     display: 'flex',
     justifyContent: 'space-between',
     gap: '12px',
     padding: '17px 0',
     borderBottom: '1px solid #eee',
-    textAlign: 'left',
+    textAlign: 'left'
   },
-
   select: {
     width: '100%',
     padding: '13px',
     border: '1px solid #ddd',
     borderRadius: '8px',
-    marginBottom: '15px',
+    marginBottom: '15px'
   },
-
   notice: {
     background: '#fff8df',
     padding: '13px',
     borderRadius: '8px',
     color: '#806000',
-    fontSize: '13px',
+    fontSize: '13px'
   },
-
   payButton: {
     width: '100%',
     padding: '14px',
@@ -537,22 +454,20 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    marginTop: '12px',
+    marginTop: '12px'
   },
-
   backButton: {
     border: 'none',
     background: 'none',
     padding: '15px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
-
   error: {
     color: '#b42318',
     background: '#fee4e2',
     padding: '10px',
-    borderRadius: '8px',
-  },
+    borderRadius: '8px'
+  }
 };
 
 export default HealthInsurance;

@@ -7,665 +7,350 @@ function Dashboard() {
 
   const [customer, setCustomer] = useState(null);
   const [policies, setPolicies] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Load customer and policies from browser storage.
   useEffect(() => {
+    const savedCustomer = localStorage.getItem('insureproCustomer');
+
+    if (!savedCustomer) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const savedCustomer = JSON.parse(
-        localStorage.getItem('insureproCustomer') || 'null'
-      );
+      const currentCustomer = JSON.parse(savedCustomer);
+      setCustomer(currentCustomer);
 
-      if (!savedCustomer) {
-        navigate('/login');
-        return;
-      }
-
-      setCustomer(savedCustomer);
-
-      const savedPolicies = JSON.parse(
+      const allPolicies = JSON.parse(
         localStorage.getItem('insureproPolicies') || '[]'
       );
 
-      setPolicies(
-        Array.isArray(savedPolicies) ? savedPolicies : []
-      );
+      // Show only policies belonging to the logged-in customer.
+      const customerPolicies = allPolicies.filter((policy) => {
+        const sameId =
+          String(policy.customerId ?? policy.userId ?? '') ===
+          String(currentCustomer.customerId ?? currentCustomer.id ?? '');
+
+        const sameEmail =
+          String(policy.customerEmail ?? policy.email ?? '').toLowerCase() ===
+          String(currentCustomer.email ?? '').toLowerCase();
+
+        return sameId || sameEmail;
+      });
+
+      setPolicies(customerPolicies);
     } catch (error) {
-      console.error('Unable to load dashboard information:', error);
+      console.error('Dashboard loading error:', error);
       setPolicies([]);
-    } finally {
-      setLoading(false);
     }
   }, [navigate]);
 
-  // Logout customer.
   const handleLogout = () => {
     localStorage.removeItem('insureproCustomer');
+    localStorage.removeItem('insurepro_logged_in');
+    sessionStorage.removeItem('customer');
     navigate('/login');
   };
 
-  // Convert premium or coverage into a number.
-  const parseAmount = (value) => {
-    if (typeof value === 'number') {
-      return Number.isFinite(value) ? value : 0;
-    }
-
-    if (!value) return 0;
-
-    const amount = parseFloat(
-      String(value).replace(/[^\d.]/g, '')
-    );
-
-    return Number.isFinite(amount) ? amount : 0;
-  };
-
-  const formatMoney = (value) => {
-    return `₹${parseAmount(value).toLocaleString('en-IN')}`;
-  };
+  if (!customer) {
+    return <p style={{ padding: '30px' }}>Loading dashboard...</p>;
+  }
 
   const activePolicies = policies.filter(
     (policy) =>
-      String(policy.status || '').toLowerCase() === 'active'
+      String(policy.status || 'Active').toLowerCase() === 'active'
   );
 
   const totalPremium = policies.reduce(
-    (total, policy) => total + parseAmount(policy.premium),
+    (total, policy) =>
+      total + Number(
+        policy.premium ??
+        policy.premiumAmount ??
+        policy.amount ??
+        0
+      ),
     0
   );
 
-  const firstName = customer?.fullName
-    ? customer.fullName.split(' ')[0]
-    : 'Customer';
+  const displayName =
+    customer.fullName || customer.name || 'Customer';
 
-  const menuItems = [
-    { icon: '⌂', label: 'Dashboard', path: '/dashboard' },
-    { icon: '♡', label: 'Health Insurance', path: '/health-insurance' },
-    { icon: '🚗', label: 'Vehicle Insurance', path: '/vehicle-insurance' },
-    { icon: '▤', label: 'My Policies', path: '/my-policies' },
-    { icon: '▦', label: 'Premium Calculator', path: '/premium-calculator' },
-    { icon: '▤', label: 'My Claims', path: '/my-claims' },
-    { icon: '▣', label: 'Payments', path: '/payments' },
-    { icon: '♙', label: 'My Profile', path: '/profile' }
-  ];
+  const firstLetter = displayName.charAt(0).toUpperCase();
+
+  const styles = {
+    page: {
+      minHeight: '100vh',
+      display: 'flex',
+      background: '#f3f6fc',
+      fontFamily: 'Arial, sans-serif',
+      color: '#17365d'
+    },
+    sidebar: {
+      width: '230px',
+      minWidth: '210px',
+      background: '#ffffff',
+      padding: '25px 18px',
+      boxSizing: 'border-box',
+      borderRight: '1px solid #e5eaf2'
+    },
+    logo: {
+      fontSize: '25px',
+      fontWeight: 'bold',
+      color: '#1456a0',
+      marginBottom: '45px'
+    },
+    menuTitle: {
+      color: '#98a2b3',
+      fontSize: '12px',
+      fontWeight: 'bold',
+      margin: '20px 0'
+    },
+    link: {
+      display: 'block',
+      padding: '14px 12px',
+      marginBottom: '8px',
+      color: '#526987',
+      textDecoration: 'none',
+      borderRadius: '9px'
+    },
+    main: {
+      flex: 1,
+      padding: '30px',
+      minWidth: 0
+    },
+    top: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '15px',
+      marginBottom: '30px'
+    },
+    welcome: {
+      background: 'linear-gradient(110deg, #1759a5, #367fc9)',
+      color: 'white',
+      borderRadius: '17px',
+      padding: '45px 25px',
+      textAlign: 'center',
+      marginBottom: '28px'
+    },
+    cards: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+      gap: '18px',
+      marginBottom: '35px'
+    },
+    card: {
+      background: 'white',
+      padding: '25px 15px',
+      borderRadius: '15px',
+      textAlign: 'center',
+      boxShadow: '0 5px 20px rgba(0,0,0,0.04)'
+    },
+    number: {
+      fontSize: '26px',
+      fontWeight: 'bold',
+      margin: '12px 0'
+    },
+    section: {
+      background: 'white',
+      padding: '22px',
+      borderRadius: '15px',
+      marginBottom: '22px',
+      overflowX: 'auto'
+    },
+    serviceGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+      gap: '15px'
+    },
+    service: {
+      display: 'block',
+      padding: '22px 12px',
+      background: '#f5f8ff',
+      borderRadius: '12px',
+      textAlign: 'center',
+      textDecoration: 'none',
+      color: '#1456a0',
+      fontWeight: 'bold'
+    },
+    logout: {
+      background: '#eaf1ff',
+      color: '#1456a0',
+      border: 'none',
+      padding: '11px 18px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontWeight: 'bold'
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      minWidth: '500px'
+    },
+    cell: {
+      padding: '13px',
+      borderBottom: '1px solid #eeeeee',
+      textAlign: 'left'
+    }
+  };
 
   return (
-    <div style={styles.app}>
+    <div style={styles.page}>
 
-      {/* Sidebar */}
       <aside style={styles.sidebar}>
-        <div style={styles.logo}>
-          <span style={styles.logoIcon}>I</span>
-          <span>InsurePro</span>
-        </div>
+        <div style={styles.logo}>🛡️ InsurePro</div>
 
-        <p style={styles.menuHeading}>MAIN MENU</p>
+        <p style={styles.menuTitle}>MAIN MENU</p>
 
-        <nav style={styles.navigation}>
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                ...styles.menuLink,
-                ...(item.path === '/dashboard'
-                  ? styles.activeLink
-                  : {})
-              }}
-            >
-              <span style={styles.menuIcon}>{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div style={styles.sidebarBottom}>
-          <div style={styles.helpBox}>
-            <strong>Need Help?</strong>
-            <p>We are here to support you.</p>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            style={styles.logoutButton}
-          >
-            ↪ Logout
-          </button>
-        </div>
+        <Link to="/dashboard" style={styles.link}>⌂ Dashboard</Link>
+        <Link to="/health-insurance" style={styles.link}>♡ Health Insurance</Link>
+        <Link to="/vehicle-insurance" style={styles.link}>🚘 Vehicle Insurance</Link>
+        <Link to="/my-policies" style={styles.link}>▤ My Policies</Link>
+        <Link to="/premium-calculator" style={styles.link}>▦ Premium Calculator</Link>
+        <Link to="/my-claims" style={styles.link}>▤ My Claims</Link>
+        <Link to="/payments" style={styles.link}>▣ Payments</Link>
+        <Link to="/profile" style={styles.link}>♙ My Profile</Link>
       </aside>
 
-      {/* Main content */}
       <main style={styles.main}>
 
-        <header style={styles.topbar}>
+        <div style={styles.top}>
           <div>
-            <h2 style={styles.topTitle}>Customer Dashboard</h2>
-            <p style={styles.topSubtitle}>
+            <h2 style={{ margin: 0 }}>Customer Dashboard</h2>
+            <p style={{ color: '#8493a8' }}>
               Manage your insurance in one place.
             </p>
           </div>
 
-          <div style={styles.userInfo}>
-            <div style={styles.avatar}>
-              {firstName.charAt(0).toUpperCase()}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              background: '#dceaff',
+              borderRadius: '50%',
+              width: '45px',
+              height: '45px',
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: 'bold'
+            }}>
+              {firstLetter}
             </div>
 
             <div>
-              <strong>{customer?.fullName || 'Customer'}</strong>
-              <p style={styles.email}>
-                {customer?.email || ''}
+              <strong>{displayName}</strong>
+              <p style={{ margin: '5px 0', color: '#8493a8' }}>
+                {customer.email}
               </p>
             </div>
           </div>
-        </header>
+        </div>
 
-        {/* Welcome section */}
         <section style={styles.welcome}>
-          <div>
-            <p style={styles.welcomeSmall}>
-              WELCOME TO INSUREPRO
-            </p>
-
-            <h1>Hello, {firstName}!</h1>
-
-            <p>
-              Your protection matters. Manage your policies and
-              insurance services from here.
-            </p>
-          </div>
-
-          <div style={styles.welcomeIcon}>🛡️</div>
+          <h4>WELCOME TO INSUREPRO</h4>
+          <h1 style={{ fontSize: '42px', margin: '20px 0' }}>
+            Hello, {displayName}!
+          </h1>
+          <p style={{ fontSize: '18px' }}>
+            Your protection matters. Manage your policies and insurance services from here.
+          </p>
         </section>
 
-        {/* Summary cards */}
-        <section style={styles.statsGrid}>
+        <section style={styles.cards}>
 
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>▤</div>
-            <p>Total Policies</p>
-            <h2>{loading ? '...' : policies.length}</h2>
-            <span>Purchased policies</span>
+          <div style={styles.card}>
+            <div style={{ fontSize: '25px' }}>▤</div>
+            <h3>Total Policies</h3>
+            <div style={styles.number}>{policies.length}</div>
+            <p>Purchased policies</p>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>✓</div>
-            <p>Active Policies</p>
-            <h2>{loading ? '...' : activePolicies.length}</h2>
-            <span>Currently active</span>
+          <div style={styles.card}>
+            <div style={{ fontSize: '25px' }}>✓</div>
+            <h3>Active Policies</h3>
+            <div style={styles.number}>{activePolicies.length}</div>
+            <p>Currently active</p>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>₹</div>
-            <p>Total Premium</p>
-            <h2>
-              {loading ? '...' : formatMoney(totalPremium)}
-            </h2>
-            <span>Recorded policy premiums</span>
+          <div style={styles.card}>
+            <div style={{ fontSize: '25px' }}>₹</div>
+            <h3>Total Premium</h3>
+            <div style={styles.number}>
+              ₹{totalPremium.toLocaleString('en-IN')}
+            </div>
+            <p>Recorded policy premiums</p>
           </div>
 
         </section>
 
-        {/* Quick services */}
+        <h2 style={{ textAlign: 'center' }}>Quick Services</h2>
+
+        <section style={styles.serviceGrid}>
+          <Link to="/health-insurance" style={styles.service}>
+            ♡<br /><br />Health Insurance
+          </Link>
+
+          <Link to="/vehicle-insurance" style={styles.service}>
+            🚘<br /><br />Vehicle Insurance
+          </Link>
+
+          <Link to="/premium-calculator" style={styles.service}>
+            ▦<br /><br />Premium Calculator
+          </Link>
+
+          <Link to="/my-claims" style={styles.service}>
+            ▤<br /><br />My Claims
+          </Link>
+        </section>
+
         <section style={styles.section}>
-          <h2 style={styles.sectionTitle}>Quick Services</h2>
+          <h2>Recent Policies</h2>
 
-          <div style={styles.servicesGrid}>
+          {policies.length === 0 ? (
+            <p>No policies found for your account. Purchase a demo policy to see it here.</p>
+          ) : (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.cell}>Policy Number</th>
+                  <th style={styles.cell}>Policy Type</th>
+                  <th style={styles.cell}>Premium</th>
+                  <th style={styles.cell}>Status</th>
+                </tr>
+              </thead>
 
-            <Link to="/health-insurance" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>♡</span>
-              <h3>Health Insurance</h3>
-              <p>Explore health coverage plans.</p>
-              <span style={styles.serviceLink}>
-                Explore Plans →
-              </span>
-            </Link>
-
-            <Link to="/vehicle-insurance" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>🚗</span>
-              <h3>Vehicle Insurance</h3>
-              <p>Explore car and bike protection.</p>
-              <span style={styles.serviceLink}>
-                Explore Plans →
-              </span>
-            </Link>
-
-            <Link to="/premium-calculator" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>▦</span>
-              <h3>Premium Calculator</h3>
-              <p>Calculate an estimated premium.</p>
-              <span style={styles.serviceLink}>
-                Calculate Now →
-              </span>
-            </Link>
-
-            <Link to="/my-claims" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>▤</span>
-              <h3>My Claims</h3>
-              <p>Submit and view demo claims.</p>
-              <span style={styles.serviceLink}>
-                View Claims →
-              </span>
-            </Link>
-
-            <Link to="/payments" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>▣</span>
-              <h3>Payments</h3>
-              <p>View your policy premium records.</p>
-              <span style={styles.serviceLink}>
-                View Payments →
-              </span>
-            </Link>
-
-            <Link to="/my-policies" style={styles.serviceCard}>
-              <span style={styles.serviceIcon}>📄</span>
-              <h3>My Policies</h3>
-              <p>Review your purchased policies.</p>
-              <span style={styles.serviceLink}>
-                View Policies →
-              </span>
-            </Link>
-
-          </div>
+              <tbody>
+                {policies.slice(0, 5).map((policy, index) => (
+                  <tr key={policy.policyNumber || policy.id || index}>
+                    <td style={styles.cell}>
+                      {policy.policyNumber || policy.id || 'N/A'}
+                    </td>
+                    <td style={styles.cell}>
+                      {policy.policyType || policy.type || 'Insurance'}
+                    </td>
+                    <td style={styles.cell}>
+                      ₹{Number(
+                        policy.premium ??
+                        policy.premiumAmount ??
+                        policy.amount ??
+                        0
+                      ).toLocaleString('en-IN')}
+                    </td>
+                    <td style={styles.cell}>
+                      {policy.status || 'Active'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
 
-        {/* Recent policies */}
-        <section style={styles.section}>
-
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>Recent Policies</h2>
-
-            <Link to="/my-policies" style={styles.viewAll}>
-              View All →
-            </Link>
-          </div>
-
-          <div style={styles.policyBox}>
-
-            {loading ? (
-              <p style={styles.emptyText}>
-                Loading policies...
-              </p>
-            ) : policies.length === 0 ? (
-              <div style={styles.empty}>
-                <span style={{ fontSize: '35px' }}>📄</span>
-                <h3>No Policies Yet</h3>
-                <p>Choose an insurance plan to get started.</p>
-
-                <Link
-                  to="/health-insurance"
-                  style={styles.primaryButton}
-                >
-                  Explore Insurance
-                </Link>
-              </div>
-            ) : (
-              policies.slice(0, 5).map((policy, index) => (
-                <div
-                  key={policy.id || policy.policyNumber || index}
-                  style={styles.policyRow}
-                >
-                  <div style={styles.policyIcon}>
-                    {String(policy.type || '').toLowerCase() === 'vehicle'
-                      ? '🚗'
-                      : '♡'}
-                  </div>
-
-                  <div style={styles.policyDetails}>
-                    <strong>
-                      {policy.name || policy.planName || 'Insurance Policy'}
-                    </strong>
-
-                    <span>
-                      {policy.policyNumber || 'No policy number'}
-                    </span>
-                  </div>
-
-                  <div style={styles.policyPremium}>
-                    <strong>{formatMoney(policy.premium)}</strong>
-                    <span>Annual premium</span>
-                  </div>
-
-                  <span style={styles.status}>
-                    {policy.status || 'Recorded'}
-                  </span>
-                </div>
-              ))
-            )}
-
-          </div>
-        </section>
-
-        <footer style={styles.footer}>
-          © {new Date().getFullYear()} InsurePro. All rights reserved.
-        </footer>
+        <button onClick={handleLogout} style={styles.logout}>
+          Logout
+        </button>
 
       </main>
     </div>
   );
 }
-
-const styles = {
-  app: {
-    display: 'flex',
-    minHeight: '100vh',
-    background: '#f4f7fc',
-    color: '#17365d',
-    fontFamily: 'Arial, sans-serif'
-  },
-
-  sidebar: {
-    width: '245px',
-    minWidth: '245px',
-    background: '#ffffff',
-    padding: '25px 15px',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRight: '1px solid #e5eaf2',
-    boxSizing: 'border-box'
-  },
-
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '23px',
-    fontWeight: 'bold',
-    color: '#1456a0',
-    padding: '5px 10px 35px'
-  },
-
-  logoIcon: {
-    background: '#1456a0',
-    color: '#ffffff',
-    width: '36px',
-    height: '36px',
-    display: 'grid',
-    placeItems: 'center',
-    borderRadius: '9px'
-  },
-
-  menuHeading: {
-    fontSize: '11px',
-    color: '#9aa7b8',
-    fontWeight: 'bold',
-    paddingLeft: '12px',
-    letterSpacing: '1px'
-  },
-
-  navigation: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '7px'
-  },
-
-  menuLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '13px',
-    padding: '13px 12px',
-    color: '#61748f',
-    textDecoration: 'none',
-    borderRadius: '9px',
-    fontSize: '14px'
-  },
-
-  activeLink: {
-    background: '#eaf2ff',
-    color: '#1456a0',
-    fontWeight: 'bold'
-  },
-
-  menuIcon: {
-    width: '20px',
-    textAlign: 'center',
-    fontSize: '18px'
-  },
-
-  sidebarBottom: {
-    marginTop: 'auto'
-  },
-
-  helpBox: {
-    background: '#f0f5ff',
-    borderRadius: '10px',
-    padding: '15px',
-    fontSize: '13px',
-    margin: '20px 0'
-  },
-
-  logoutButton: {
-    width: '100%',
-    border: 'none',
-    background: '#fff0f0',
-    color: '#c03939',
-    padding: '13px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  },
-
-  main: {
-    flex: 1,
-    minWidth: 0,
-    padding: '25px 30px',
-    boxSizing: 'border-box'
-  },
-
-  topbar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '15px',
-    marginBottom: '25px'
-  },
-
-  topTitle: {
-    margin: 0,
-    fontSize: '23px'
-  },
-
-  topSubtitle: {
-    color: '#8492a6',
-    margin: '7px 0 0',
-    fontSize: '13px'
-  },
-
-  userInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '13px'
-  },
-
-  avatar: {
-    width: '42px',
-    height: '42px',
-    borderRadius: '50%',
-    display: 'grid',
-    placeItems: 'center',
-    background: '#dceaff',
-    color: '#1456a0',
-    fontWeight: 'bold',
-    fontSize: '19px'
-  },
-
-  email: {
-    color: '#8492a6',
-    margin: '5px 0 0'
-  },
-
-  welcome: {
-    background: 'linear-gradient(110deg, #1456a0, #347ac5)',
-    color: '#ffffff',
-    borderRadius: '15px',
-    padding: '30px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '15px',
-    marginBottom: '25px'
-  },
-
-  welcomeSmall: {
-    fontSize: '11px',
-    letterSpacing: '1.5px',
-    fontWeight: 'bold',
-    opacity: 0.8
-  },
-
-  welcomeIcon: {
-    fontSize: '65px'
-  },
-
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '18px',
-    marginBottom: '30px'
-  },
-
-  statCard: {
-    background: '#ffffff',
-    padding: '22px',
-    borderRadius: '13px',
-    boxShadow: '0 3px 15px rgba(0,0,0,.04)'
-  },
-
-  statIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    display: 'grid',
-    placeItems: 'center',
-    background: '#eaf2ff',
-    color: '#1456a0',
-    fontSize: '21px',
-    fontWeight: 'bold'
-  },
-
-  section: {
-    marginBottom: '30px'
-  },
-
-  sectionTitle: {
-    fontSize: '20px',
-    margin: '0 0 18px'
-  },
-
-  servicesGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-    gap: '17px'
-  },
-
-  serviceCard: {
-    display: 'block',
-    background: '#ffffff',
-    padding: '20px',
-    borderRadius: '13px',
-    textDecoration: 'none',
-    color: '#17365d',
-    boxShadow: '0 3px 15px rgba(0,0,0,.04)'
-  },
-
-  serviceIcon: {
-    fontSize: '28px',
-    color: '#1456a0'
-  },
-
-  serviceLink: {
-    color: '#1456a0',
-    fontWeight: 'bold',
-    fontSize: '13px'
-  },
-
-  sectionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-
-  viewAll: {
-    color: '#1456a0',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    fontSize: '13px'
-  },
-
-  policyBox: {
-    background: '#ffffff',
-    padding: '20px',
-    borderRadius: '13px',
-    boxShadow: '0 3px 15px rgba(0,0,0,.04)'
-  },
-
-  policyRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-    padding: '17px 5px',
-    borderBottom: '1px solid #edf0f5',
-    flexWrap: 'wrap'
-  },
-
-  policyIcon: {
-    width: '43px',
-    height: '43px',
-    borderRadius: '10px',
-    background: '#eaf2ff',
-    display: 'grid',
-    placeItems: 'center',
-    fontSize: '22px'
-  },
-
-  policyDetails: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '7px',
-    flex: 1,
-    minWidth: '130px'
-  },
-
-  policyPremium: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    fontSize: '13px'
-  },
-
-  status: {
-    background: '#e5f7ee',
-    color: '#16804a',
-    padding: '8px 12px',
-    borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: 'bold'
-  },
-
-  empty: {
-    textAlign: 'center',
-    padding: '35px 10px'
-  },
-
-  emptyText: {
-    color: '#718096'
-  },
-
-  primaryButton: {
-    display: 'inline-block',
-    padding: '12px 20px',
-    background: '#1456a0',
-    color: '#ffffff',
-    textDecoration: 'none',
-    borderRadius: '8px',
-    marginTop: '10px'
-  },
-
-  footer: {
-    padding: '20px 0',
-    color: '#8492a6',
-    fontSize: '12px',
-    textAlign: 'center'
-  }
-};
 
 export default Dashboard;

@@ -1,216 +1,298 @@
 
 import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Payments() {
+  const navigate = useNavigate();
+
+  const [customer, setCustomer] = useState(null);
   const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const savedCustomer = localStorage.getItem('insureproCustomer');
+
+    if (!savedCustomer) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const savedPayments = JSON.parse(
+      const currentCustomer = JSON.parse(savedCustomer);
+      setCustomer(currentCustomer);
+
+      const customerId = String(
+        currentCustomer.customerId ?? currentCustomer.id ?? ''
+      );
+
+      const customerEmail = String(
+        currentCustomer.email ?? ''
+      ).toLowerCase();
+
+      const allPayments = JSON.parse(
         localStorage.getItem('insureproPayments') || '[]'
       );
 
-      const savedPolicies = JSON.parse(
+      const allPolicies = JSON.parse(
         localStorage.getItem('insureproPolicies') || '[]'
       );
 
-      // Prefer saved payment records.
-      // If none exist, use purchased policies as payment history.
-      const records = savedPayments.length > 0
-        ? savedPayments
-        : savedPolicies;
+      // Keep only payments belonging to this customer.
+      const customerPayments = allPayments.filter((payment) => {
+        const sameId =
+          String(payment.customerId ?? payment.userId ?? '') === customerId;
 
-      const normalizedPayments = records.map((item, index) => ({
-        ...item,
-        id: item.id || index,
-        policyNumber: item.policyNumber || '-',
-        name: item.planName || item.name || 'Insurance Policy',
-        type: item.type || 'Insurance',
-        amount: Number(
-          String(item.amount ?? item.premium ?? 0).replace(/[^\d.]/g, '')
-        ) || 0,
-        paymentDate:
-          item.paymentDate || item.purchaseDate || item.startDate || '',
-        status: item.status || 'Recorded',
-        paymentMethod: item.paymentMethod || 'Not available'
-      }));
+        const sameEmail =
+          String(
+            payment.customerEmail ?? payment.email ?? ''
+          ).toLowerCase() === customerEmail;
 
-      setPayments(normalizedPayments);
+        return sameId || sameEmail;
+      });
+
+      // If no separate payment records exist, show this customer's policies.
+      const records = customerPayments.length > 0
+        ? customerPayments
+        : allPolicies
+            .filter((policy) => {
+              const sameId =
+                String(policy.customerId ?? policy.userId ?? '') === customerId;
+
+              const sameEmail =
+                String(
+                  policy.customerEmail ?? policy.email ?? ''
+                ).toLowerCase() === customerEmail;
+
+              return sameId || sameEmail;
+            })
+            .map((policy) => ({
+              ...policy,
+              paymentAmount:
+                policy.paymentAmount ??
+                policy.premium ??
+                policy.premiumAmount ??
+                policy.amount ??
+                0,
+              paymentStatus:
+                policy.paymentStatus || 'Recorded'
+            }));
+
+      setPayments(records);
     } catch (error) {
-      console.error('Unable to load payment records:', error);
+      console.error('Payments loading error:', error);
       setPayments([]);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
-  const formatMoney = (amount) =>
-    `₹${Number(amount || 0).toLocaleString('en-IN')}`;
-
-  const formatDate = (date) => {
-    if (!date) return '-';
-
-    const parsedDate = new Date(date);
-
-    if (Number.isNaN(parsedDate.getTime())) return '-';
-
-    return parsedDate.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
+  const handleLogout = () => {
+    localStorage.removeItem('insureproCustomer');
+    localStorage.removeItem('insurepro_logged_in');
+    sessionStorage.removeItem('customer');
+    navigate('/login');
   };
 
+  if (!customer) {
+    return <p style={{ padding: '30px' }}>Loading payments...</p>;
+  }
+
   const totalPaid = payments.reduce(
-    (total, payment) => total + payment.amount,
+    (total, payment) =>
+      total + Number(
+        payment.paymentAmount ??
+        payment.premium ??
+        payment.premiumAmount ??
+        payment.amount ??
+        0
+      ),
     0
   );
 
-  const activePolicies = payments.filter(
-    (payment) => String(payment.status).toLowerCase() === 'active'
-  ).length;
+  const styles = {
+    page: {
+      minHeight: '100vh',
+      background: '#f3f6fc',
+      padding: '30px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#17365d'
+    },
+    container: {
+      maxWidth: '1100px',
+      margin: '0 auto'
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '15px',
+      marginBottom: '25px'
+    },
+    button: {
+      padding: '11px 18px',
+      border: 'none',
+      borderRadius: '8px',
+      background: '#1456a0',
+      color: 'white',
+      cursor: 'pointer',
+      textDecoration: 'none',
+      display: 'inline-block',
+      marginRight: '10px'
+    },
+    card: {
+      background: 'white',
+      padding: '25px',
+      borderRadius: '14px',
+      marginBottom: '25px',
+      boxShadow: '0 5px 20px rgba(0,0,0,0.04)'
+    },
+    amount: {
+      fontSize: '30px',
+      fontWeight: 'bold',
+      color: '#1456a0',
+      margin: '12px 0'
+    },
+    tableWrapper: {
+      overflowX: 'auto'
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      minWidth: '600px'
+    },
+    cell: {
+      padding: '15px',
+      textAlign: 'left',
+      borderBottom: '1px solid #eeeeee'
+    },
+    status: {
+      display: 'inline-block',
+      background: '#e6f8ed',
+      color: '#168348',
+      padding: '6px 12px',
+      borderRadius: '20px',
+      fontSize: '13px'
+    }
+  };
 
   return (
     <div style={styles.page}>
-      <h1>Payments</h1>
+      <div style={styles.container}>
 
-      <p style={styles.subtitle}>
-        View your insurance policy premiums and payment records.
-      </p>
-
-      <div style={styles.summaryGrid}>
-        <div style={styles.summaryCard}>
-          <span>Total Records</span>
-          <h2>{loading ? '...' : payments.length}</h2>
-        </div>
-
-        <div style={styles.summaryCard}>
-          <span>Total Premium Amount</span>
-          <h2>{loading ? '...' : formatMoney(totalPaid)}</h2>
-        </div>
-
-        <div style={styles.summaryCard}>
-          <span>Active Policies</span>
-          <h2>{loading ? '...' : activePolicies}</h2>
-        </div>
-      </div>
-
-      <div style={styles.card}>
-        <h2>Payment History</h2>
-
-        {loading && (
-          <p style={styles.subtitle}>Loading payment records...</p>
-        )}
-
-        {!loading && payments.length === 0 && (
-          <p style={styles.subtitle}>
-            No payment records found. Purchase a Health or Vehicle
-            Insurance plan to see your records here.
-          </p>
-        )}
-
-        {!loading && payments.length > 0 && (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th>Policy Number</th>
-                  <th>Policy Name</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Payment Method</th>
-                  <th>Payment Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td>{payment.policyNumber}</td>
-                    <td>{payment.name}</td>
-                    <td>{payment.type}</td>
-                    <td>{formatMoney(payment.amount)}</td>
-                    <td>{payment.paymentMethod}</td>
-                    <td>{formatDate(payment.paymentDate)}</td>
-                    <td>
-                      <span style={styles.status}>
-                        {payment.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div style={styles.header}>
+          <div>
+            <h1>Payment History</h1>
+            <p style={{ color: '#8493a8' }}>
+              Welcome, {customer.fullName || customer.name || 'Customer'}
+            </p>
           </div>
-        )}
 
-        <p style={styles.note}>
-          These are frontend demo payment records stored in your browser.
-          No real payment is processed and no payment gateway is connected.
-        </p>
+          <div>
+            <Link to="/dashboard" style={styles.button}>
+              Back to Dashboard
+            </Link>
+
+            <button onClick={handleLogout} style={styles.button}>
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <section style={styles.card}>
+          <h3>Total Recorded Payments</h3>
+
+          <div style={styles.amount}>
+            ₹{totalPaid.toLocaleString('en-IN')}
+          </div>
+
+          <p style={{ color: '#8493a8' }}>
+            Payments and premiums recorded for your account
+          </p>
+        </section>
+
+        <section style={styles.card}>
+          <h2>Payment Records</h2>
+
+          {payments.length === 0 ? (
+            <p>No payment records found for your account.</p>
+          ) : (
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.cell}>Payment / Policy ID</th>
+                    <th style={styles.cell}>Policy Type</th>
+                    <th style={styles.cell}>Amount</th>
+                    <th style={styles.cell}>Date</th>
+                    <th style={styles.cell}>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {payments.map((payment, index) => {
+                    const amount =
+                      payment.paymentAmount ??
+                      payment.premium ??
+                      payment.premiumAmount ??
+                      payment.amount ??
+                      0;
+
+                    const paymentDate =
+                      payment.paymentDate ||
+                      payment.createdAt ||
+                      payment.purchaseDate ||
+                      payment.date;
+
+                    return (
+                      <tr key={payment.id || payment.policyNumber || index}>
+                        <td style={styles.cell}>
+                          {payment.paymentId ||
+                            payment.policyNumber ||
+                            payment.id ||
+                            'N/A'}
+                        </td>
+
+                        <td style={styles.cell}>
+                          {payment.policyType ||
+                            payment.type ||
+                            'Insurance'}
+                        </td>
+
+                        <td style={styles.cell}>
+                          ₹{Number(amount).toLocaleString('en-IN')}
+                        </td>
+
+                        <td style={styles.cell}>
+                          {paymentDate
+                            ? new Date(paymentDate).toLocaleDateString('en-IN')
+                            : 'Not available'}
+                        </td>
+
+                        <td style={styles.cell}>
+                          <span style={styles.status}>
+                            {payment.paymentStatus ||
+                              payment.status ||
+                              'Recorded'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <p style={{
+            marginTop: '20px',
+            color: '#8493a8',
+            fontSize: '13px'
+          }}>
+            Demo application: no real payment is collected or processed.
+          </p>
+        </section>
+
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    background: '#f4f7fc',
-    padding: '35px',
-    fontFamily: 'Arial, sans-serif',
-    color: '#17365d'
-  },
-
-  subtitle: {
-    color: '#718096',
-    lineHeight: 1.6
-  },
-
-  summaryGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-    gap: '20px',
-    margin: '25px 0'
-  },
-
-  summaryCard: {
-    background: '#fff',
-    padding: '24px',
-    borderRadius: '13px',
-    boxShadow: '0 4px 18px rgba(0,0,0,.05)'
-  },
-
-  card: {
-    background: '#fff',
-    padding: '25px',
-    borderRadius: '14px',
-    boxShadow: '0 4px 18px rgba(0,0,0,.05)'
-  },
-
-  table: {
-    width: '100%',
-    minWidth: '900px',
-    borderCollapse: 'collapse',
-    textAlign: 'left'
-  },
-
-  status: {
-    background: '#e5f7ee',
-    color: '#187443',
-    padding: '7px 12px',
-    borderRadius: '20px',
-    fontSize: '12px'
-  },
-
-  note: {
-    marginTop: '20px',
-    color: '#718096',
-    fontSize: '12px',
-    lineHeight: 1.6
-  }
-};
 
 export default Payments;
