@@ -1,20 +1,29 @@
+
 stage('Start InsurePro Frontend') {
     steps {
         powershell '''
+            $frontendPath = "$env:WORKSPACE\\frontend"
+            $stdoutLog = "$env:WORKSPACE\\frontend.stdout.log"
+            $stderrLog = "$env:WORKSPACE\\frontend.stderr.log"
+
             $process = Start-Process `
                 -FilePath "cmd.exe" `
-                -ArgumentList "/c npm run dev -- --host 127.0.0.1 --port 5175" `
-                -WorkingDirectory "$env:WORKSPACE\\frontend" `
+                -ArgumentList '/c npm run preview -- --host 127.0.0.1 --port 5175 --strictPort' `
+                -WorkingDirectory $frontendPath `
                 -PassThru `
                 -WindowStyle Hidden `
-                -RedirectStandardOutput "$env:WORKSPACE\\frontend.log" `
-                -RedirectStandardError "$env:WORKSPACE\\frontend-error.log"
+                -RedirectStandardOutput $stdoutLog `
+                -RedirectStandardError $stderrLog
 
             Set-Content "$env:WORKSPACE\\frontend.pid" $process.Id
 
             $ready = $false
 
             for ($i = 0; $i -lt 60; $i++) {
+                if ($process.HasExited) {
+                    break
+                }
+
                 try {
                     Invoke-WebRequest `
                         -Uri "http://127.0.0.1:5175" `
@@ -29,12 +38,18 @@ stage('Start InsurePro Frontend') {
             }
 
             if (-not $ready) {
-                Get-Content "$env:WORKSPACE\\frontend.log" -ErrorAction SilentlyContinue
-                Get-Content "$env:WORKSPACE\\frontend-error.log" -ErrorAction SilentlyContinue
-                throw "Frontend did not start on port 5175"
+                if (Test-Path $stdoutLog) {
+                    Get-Content $stdoutLog
+                }
+
+                if (Test-Path $stderrLog) {
+                    Get-Content $stderrLog
+                }
+
+                throw "Frontend preview server failed to start"
             }
 
-            Write-Host "InsurePro frontend is running successfully"
+            Write-Host "InsurePro frontend is running"
         '''
     }
 }
