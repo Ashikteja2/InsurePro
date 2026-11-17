@@ -29,7 +29,7 @@ pipeline {
                 powershell '''
                     $process = Start-Process `
                         -FilePath "cmd.exe" `
-                        -ArgumentList "/c npm run dev -- --host 127.0.0.1 --port 5175" `
+                        -ArgumentList "/c npm run dev -- --host 0.0.0.0 --port 5175" `
                         -WorkingDirectory "$env:WORKSPACE\\frontend" `
                         -PassThru `
                         -WindowStyle Hidden
