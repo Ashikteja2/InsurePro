@@ -1,55 +1,110 @@
 
-stage('Start InsurePro Frontend') {
-    steps {
-        powershell '''
-            $frontendPath = "$env:WORKSPACE\\frontend"
-            $stdoutLog = "$env:WORKSPACE\\frontend.stdout.log"
-            $stderrLog = "$env:WORKSPACE\\frontend.stderr.log"
+pipeline {
+    agent any
 
-            $process = Start-Process `
-                -FilePath "cmd.exe" `
-                -ArgumentList '/c npm run preview -- --host 127.0.0.1 --port 5175 --strictPort' `
-                -WorkingDirectory $frontendPath `
-                -PassThru `
-                -WindowStyle Hidden `
-                -RedirectStandardOutput $stdoutLog `
-                -RedirectStandardError $stderrLog
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+    }
 
-            Set-Content "$env:WORKSPACE\\frontend.pid" $process.Id
+    stages {
 
-            $ready = $false
+        stage('Checkout GitHub Code') {
+            steps {
+                checkout scm
+                echo 'GitHub code downloaded successfully'
+            }
+        }
 
-            for ($i = 0; $i -lt 60; $i++) {
-                if ($process.HasExited) {
-                    break
+        stage('Build React Frontend') {
+            steps {
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm run build'
                 }
+            }
+        }
 
-                try {
-                    Invoke-WebRequest `
-                        -Uri "http://127.0.0.1:5175" `
-                        -TimeoutSec 2 | Out-Null
+        stage('Start InsurePro Frontend') {
+            steps {
+                powershell '''
+                    $frontendPath = "$env:WORKSPACE\\frontend"
+                    $stdoutLog = "$env:WORKSPACE\\frontend.stdout.log"
+                    $stderrLog = "$env:WORKSPACE\\frontend.stderr.log"
 
-                    $ready = $true
-                    break
+                    $process = Start-Process `
+                        -FilePath "cmd.exe" `
+                        -ArgumentList '/c npm run preview -- --host 127.0.0.1 --port 5175 --strictPort' `
+                        -WorkingDirectory $frontendPath `
+                        -PassThru `
+                        -WindowStyle Hidden `
+                        -RedirectStandardOutput $stdoutLog `
+                        -RedirectStandardError $stderrLog
+
+                    Set-Content "$env:WORKSPACE\\frontend.pid" $process.Id
+
+                    $ready = $false
+
+                    for ($i = 0; $i -lt 60; $i++) {
+                        if ($process.HasExited) {
+                            break
+                        }
+
+                        try {
+                            Invoke-WebRequest `
+                                -Uri "http://127.0.0.1:5175" `
+                                -TimeoutSec 2 | Out-Null
+
+                            $ready = $true
+                            break
+                        }
+                        catch {
+                            Start-Sleep -Seconds 2
+                        }
+                    }
+
+                    if (-not $ready) {
+                        if (Test-Path $stdoutLog) {
+                            Get-Content $stdoutLog
+                        }
+
+                        if (Test-Path $stderrLog) {
+                            Get-Content $stderrLog
+                        }
+
+                        throw "Frontend preview server failed to start"
+                    }
+
+                    Write-Host "InsurePro frontend is running"
+                '''
+            }
+        }
+
+        stage('Run Selenium Automation Tests') {
+            steps {
+                dir('automation') {
+                    bat '.\\mvnw.cmd clean test'
                 }
-                catch {
-                    Start-Sleep -Seconds 2
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                if (fileExists('frontend.pid')) {
+                    powershell '''
+                        $processId = Get-Content "$env:WORKSPACE\\frontend.pid"
+                        taskkill /PID $processId /T /F 2>$null
+                        Remove-Item "$env:WORKSPACE\\frontend.pid" -Force
+                    '''
                 }
             }
 
-            if (-not $ready) {
-                if (Test-Path $stdoutLog) {
-                    Get-Content $stdoutLog
-                }
-
-                if (Test-Path $stderrLog) {
-                    Get-Content $stderrLog
-                }
-
-                throw "Frontend preview server failed to start"
-            }
-
-            Write-Host "InsurePro frontend is running"
-        '''
+            junit(
+                testResults: 'automation/target/surefire-reports/TEST-*.xml',
+                allowEmptyResults: true
+            )
+        }
     }
 }
