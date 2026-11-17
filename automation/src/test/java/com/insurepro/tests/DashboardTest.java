@@ -13,6 +13,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.List;
 
 public class DashboardTest {
 
@@ -83,9 +84,7 @@ public class DashboardTest {
                 "Dashboard heading is missing"
         );
 
-        System.out.println(
-                "Dashboard Load Test PASSED!"
-        );
+        System.out.println("Dashboard Load Test PASSED!");
     }
 
     // TEST 2: Verify customer details
@@ -120,9 +119,7 @@ public class DashboardTest {
                 "Customer email is missing"
         );
 
-        System.out.println(
-                "Customer Details Test PASSED!"
-        );
+        System.out.println("Customer Details Test PASSED!");
     }
 
     // TEST 3: Verify dashboard summary cards
@@ -132,55 +129,66 @@ public class DashboardTest {
 
         loginCustomer();
 
-        WebElement totalPolicies = driver.findElement(
+        // Find the three cards using their actual headings
+
+        WebElement totalPoliciesCard = wait.until(d ->
+                d.findElement(By.xpath(
+                        "//h3[normalize-space()='Total Policies']/parent::div"
+                ))
+        );
+
+        WebElement activePoliciesCard = driver.findElement(
                 By.xpath(
-                        "//p[text()='Total Policies']/following-sibling::h2"
+                        "//h3[normalize-space()='Active Policies']/parent::div"
                 )
         );
 
-        WebElement activePolicies = driver.findElement(
+        WebElement totalPremiumCard = driver.findElement(
                 By.xpath(
-                        "//p[text()='Active Policies']/following-sibling::h2"
+                        "//h3[normalize-space()='Total Premium']/parent::div"
                 )
         );
 
-        WebElement totalPremium = driver.findElement(
-                By.xpath(
-                        "//p[text()='Total Premium']/following-sibling::h2"
-                )
+        // Find the number inside each card
+
+        String totalPolicies = totalPoliciesCard.findElement(
+                By.xpath("./div[contains(@style,'font-size: 26px')]")
+        ).getText();
+
+        String activePolicies = activePoliciesCard.findElement(
+                By.xpath("./div[contains(@style,'font-size: 26px')]")
+        ).getText();
+
+        String totalPremium = totalPremiumCard.findElement(
+                By.xpath("./div[contains(@style,'font-size: 26px')]")
+        ).getText();
+
+        // Verify that values are numeric
+
+        Assert.assertTrue(
+                totalPolicies.matches("\\d+"),
+                "Total Policies value is not numeric: " + totalPolicies
         );
 
         Assert.assertTrue(
-                totalPolicies.isDisplayed(),
-                "Total Policies card is missing"
+                activePolicies.matches("\\d+"),
+                "Active Policies value is not numeric: " + activePolicies
         );
+
+        // Verify premium contains a numeric amount
 
         Assert.assertTrue(
-                activePolicies.isDisplayed(),
-                "Active Policies card is missing"
+                totalPremium.matches("₹[\\d,]+"),
+                "Total Premium amount is invalid: " + totalPremium
         );
 
-        Assert.assertTrue(
-                totalPremium.isDisplayed(),
-                "Total Premium card is missing"
-        );
+        // Display actual values
 
-        Assert.assertFalse(
-                totalPolicies.getText().equals("..."),
-                "Total Policies is still loading"
-        );
+        System.out.println("Total Policies: " + totalPolicies);
 
-        System.out.println(
-                "Total Policies: " + totalPolicies.getText()
-        );
+        System.out.println("Active Policies: " + activePolicies);
 
-        System.out.println(
-                "Active Policies: " + activePolicies.getText()
-        );
-
-        System.out.println(
-                "Total Premium: " + totalPremium.getText()
-        );
+        System.out.println("Total Premium: " + totalPremium);
 
         System.out.println(
                 "Dashboard Summary Cards Test PASSED!"
@@ -209,7 +217,7 @@ public class DashboardTest {
 
             WebElement navigationLink = wait.until(d ->
                     d.findElement(By.xpath(
-                            "//nav//a[contains(normalize-space(.),'"
+                            "//a[contains(normalize-space(.),'"
                                     + link + "')]"
                     ))
             );
@@ -236,9 +244,13 @@ public class DashboardTest {
 
         loginCustomer();
 
-        driver.findElement(
-                By.xpath("//button[contains(text(),'Logout')]")
-        ).click();
+        WebElement logoutButton = wait.until(d ->
+                d.findElement(By.xpath(
+                        "//button[contains(normalize-space(.),'Logout')]"
+                ))
+        );
+
+        logoutButton.click();
 
         wait.until(d ->
                 d.getCurrentUrl().contains("/login")
@@ -259,9 +271,7 @@ public class DashboardTest {
                 "Customer session was not removed"
         );
 
-        System.out.println(
-                "Logout Test PASSED!"
-        );
+        System.out.println("Logout Test PASSED!");
     }
 
     // Close browser after every test

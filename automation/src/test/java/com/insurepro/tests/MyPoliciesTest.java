@@ -1,280 +1,294 @@
 
 package com.insurepro.tests;
 
+import java.time.Duration;
+import java.util.List;
+
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.time.Duration;
-import java.util.List;
 
 public class MyPoliciesTest {
 
     WebDriver driver;
     WebDriverWait wait;
 
-    String baseUrl = "http://localhost:5176";
+    String baseUrl = "http://localhost:5175";
 
     @BeforeMethod
     public void setUp() {
 
         driver = new ChromeDriver();
-
         driver.manage().window().maximize();
 
-        wait = new WebDriverWait(
-                driver,
-                Duration.ofSeconds(20)
-        );
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // Open frontend first
+        // Open application
         driver.get(baseUrl);
 
-        // Add demo customer session
-        ((JavascriptExecutor) driver).executeScript(
-                "localStorage.setItem('insureproCustomer', JSON.stringify({" +
-                "customerId: 7," +
-                "id: 7," +
-                "fullName: 'InsurePro Test User'," +
-                "email: 'insureprotest20261112014952@gmail.com'," +
-                "phone: '9876543210'" +
-                "}));"
+        // Prepare JavaScript executor
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        // Add test customer
+        js.executeScript(
+            "localStorage.setItem('insureproCustomer', JSON.stringify({" +
+            "customerId: 7," +
+            "id: 7," +
+            "fullName: 'Test Customer'," +
+            "name: 'Test Customer'," +
+            "email: 'test@example.com'," +
+            "phone: '9876543210'" +
+            "}));"
         );
 
-        // Open My Policies page
+        // Add sample insurance policy
+        js.executeScript(
+            "localStorage.setItem('insureproPolicies', JSON.stringify([" +
+            "{" +
+            "id: 101," +
+            "customerId: 7," +
+            "policyNumber: 'INS-TEST-101'," +
+            "name: 'Test Health Policy'," +
+            "type: 'Health'," +
+            "status: 'Active'," +
+            "coverage: 500000," +
+            "premium: 15000," +
+            "startDate: '2026-11-16'," +
+            "expiryDate: '2027-11-16'" +
+            "}" +
+            "]));"
+        );
+
+        // Navigate to My Policies
         driver.get(baseUrl + "/my-policies");
 
-        // Wait until loading finishes
-        wait.until(d ->
-                d.findElements(
-                        By.xpath("//*[contains(text(),'Loading your policies')]")
-                ).isEmpty()
+        wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector(".policies-content")
+            )
         );
     }
 
-    // Test 1: Verify My Policies page loads
+    // TEST 1: Verify navigation links
+    @Test
+    public void verifyMyPoliciesNavigationLinks() {
 
+        String[] expectedLinks = {
+            "/dashboard",
+            "/my-policies",
+            "/health-insurance",
+            "/vehicle-insurance",
+            "/premium-calculator",
+            "/my-claims",
+            "/payments",
+            "/profile"
+        };
+
+        List<WebElement> links =
+            driver.findElements(By.cssSelector(".policies-nav a"));
+
+        for (String expectedLink : expectedLinks) {
+
+            boolean found = links.stream().anyMatch(link ->
+                link.getAttribute("href").endsWith(expectedLink)
+            );
+
+            Assert.assertTrue(
+                found,
+                "Navigation link not found: " + expectedLink
+            );
+
+            System.out.println(
+                "Navigation link verified: " + expectedLink
+            );
+        }
+
+        System.out.println("My Policies Navigation Test PASSED");
+    }
+
+    // TEST 2: Verify My Policies page loads
     @Test
     public void verifyMyPoliciesPageLoads() {
 
-        WebElement heading = wait.until(d ->
-                d.findElement(
-                        By.xpath("//h1[contains(.,'My Policies')]")
-                )
+        WebElement heading = wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//h1[contains(.,'My Policies')]")
+            )
         );
 
         Assert.assertTrue(
-                heading.isDisplayed(),
-                "My Policies heading should be displayed"
+            heading.isDisplayed(),
+            "My Policies heading should be displayed"
         );
 
         Assert.assertTrue(
-                driver.findElement(
-                        By.xpath("//h2[text()='My Insurance Policies']")
-                ).isDisplayed()
+            driver.getCurrentUrl().contains("/my-policies"),
+            "My Policies URL is incorrect"
         );
 
-        System.out.println(
-                "My Policies Page Test PASSED"
-        );
+        System.out.println("My Policies Page Test PASSED");
     }
 
-    // Test 2: Verify summary cards
-
+    // TEST 3: Verify policy summary cards
     @Test
     public void verifyPolicySummaryCards() {
 
-        List<WebElement> summaryCards = driver.findElements(
-                By.cssSelector(".summary-card")
+        wait.until(
+            ExpectedConditions.numberOfElementsToBeMoreThan(
+                By.cssSelector(".summary-card"),
+                2
+            )
         );
+
+        List<WebElement> cards =
+            driver.findElements(By.cssSelector(".summary-card"));
 
         Assert.assertEquals(
-                summaryCards.size(),
-                3,
-                "Three summary cards should be displayed"
+            cards.size(),
+            3,
+            "Three summary cards should be displayed"
         );
 
-        Assert.assertTrue(
-                driver.findElement(
-                        By.xpath("//p[text()='Total Policies']")
-                ).isDisplayed()
+        String totalPolicies = cards.get(0)
+            .findElement(By.tagName("h2")).getText();
+
+        String activePolicies = cards.get(1)
+            .findElement(By.tagName("h2")).getText();
+
+        String totalCoverage = cards.get(2)
+            .findElement(By.tagName("h2")).getText();
+
+        System.out.println("Total Policies: " + totalPolicies);
+        System.out.println("Active Policies: " + activePolicies);
+        System.out.println("Total Coverage: " + totalCoverage);
+
+        Assert.assertEquals(totalPolicies, "1");
+        Assert.assertEquals(activePolicies, "1");
+
+        // Remove currency symbols and commas
+        String cleanCoverage =
+            totalCoverage.replaceAll("[^0-9]", "");
+
+        Assert.assertEquals(
+            cleanCoverage,
+            "500000",
+            "Total coverage should be 500000"
         );
 
-        Assert.assertTrue(
-                driver.findElement(
-                        By.xpath("//p[text()='Active Policies']")
-                ).isDisplayed()
-        );
-
-        Assert.assertTrue(
-                driver.findElement(
-                        By.xpath("//p[text()='Total Coverage']")
-                ).isDisplayed()
-        );
-
-        for (WebElement card : summaryCards) {
-            String value = card.findElement(By.tagName("h2")).getText();
-
-            Assert.assertFalse(
-                    value.trim().isEmpty(),
-                    "Summary value should not be empty"
-            );
-
-            System.out.println("Summary value: " + value);
-        }
-
-        System.out.println(
-                "Policy Summary Cards Test PASSED"
-        );
+        System.out.println("Policy Summary Cards Test PASSED");
     }
 
-    // Test 3: Verify policy details are displayed
-
+    // TEST 4: Verify policy details are displayed
     @Test
     public void verifyPolicyDetailsDisplayed() {
 
-        List<WebElement> policyCards = wait.until(d ->
-                d.findElements(By.cssSelector(".policy-card"))
+        wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector(".policy-card")
+            )
+        );
+
+        List<WebElement> policies =
+            driver.findElements(By.cssSelector(".policy-card"));
+
+        Assert.assertTrue(
+            policies.size() > 0,
+            "At least one policy should be displayed"
+        );
+
+        WebElement policyCard = policies.get(0);
+
+        String policyName = policyCard
+            .findElement(By.cssSelector(".policy-name h3"))
+            .getText();
+
+        String policyText = policyCard.getText();
+
+        Assert.assertTrue(
+            policyName.contains("Test Health Policy"),
+            "Policy name is incorrect"
         );
 
         Assert.assertTrue(
-                policyCards.size() > 0,
-                "At least one policy should be displayed"
-        );
-
-        WebElement firstPolicy = policyCards.get(0);
-
-        Assert.assertTrue(
-                firstPolicy.findElement(
-                        By.cssSelector(".policy-name h3")
-                ).isDisplayed(),
-                "Policy name should be displayed"
+            policyText.contains("INS-TEST-101"),
+            "Policy number is missing"
         );
 
         Assert.assertTrue(
-                firstPolicy.findElement(
-                        By.cssSelector(".active-status, .inactive-status")
-                ).isDisplayed(),
-                "Policy status should be displayed"
+            policyText.contains("Active"),
+            "Policy status is missing"
         );
+
+        // Remove currency symbols, spaces and commas
+        String cleanPolicyText =
+            policyText.replaceAll("[^0-9]", "");
 
         Assert.assertTrue(
-                firstPolicy.getText().contains("Policy Number:"),
-                "Policy number should be displayed"
+            cleanPolicyText.contains("500000"),
+            "Coverage amount is missing"
         );
 
-        Assert.assertTrue(
-                firstPolicy.getText().contains("Coverage Amount"),
-                "Coverage amount should be displayed"
-        );
-
-        Assert.assertTrue(
-                firstPolicy.getText().contains("Annual Premium"),
-                "Annual premium should be displayed"
-        );
-
-        System.out.println(
-                "Policy Details Test PASSED"
-        );
+        System.out.println("Policy Name: " + policyName);
+        System.out.println("Policy Details Test PASSED");
     }
 
-    // Test 4: Verify View Details button
-
+    // TEST 5: Verify View Details button
     @Test
     public void verifyViewPolicyDetailsButton() {
 
-        WebElement firstPolicy = wait.until(d ->
-                d.findElement(By.cssSelector(".policy-card"))
+        WebElement policyCard = wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector(".policy-card")
+            )
         );
 
-        WebElement viewDetailsButton = firstPolicy.findElement(
-                By.xpath(".//button[contains(text(),'View Details')]")
+        WebElement viewDetailsButton = policyCard.findElement(
+            By.xpath(".//button[contains(.,'View Details')]")
         );
 
         Assert.assertTrue(
-                viewDetailsButton.isDisplayed(),
-                "View Details button should be displayed"
+            viewDetailsButton.isDisplayed(),
+            "View Details button should be displayed"
         );
 
         viewDetailsButton.click();
 
-        Alert alert = wait.until(d -> d.switchTo().alert());
+        // Wait for browser alert
+        Alert alert = wait.until(
+            ExpectedConditions.alertIsPresent()
+        );
 
         String alertText = alert.getText();
-
-        Assert.assertTrue(
-                alertText.contains("Policy Number:"),
-                "Alert should contain policy number"
-        );
-
-        Assert.assertTrue(
-                alertText.contains("Policy Name:"),
-                "Alert should contain policy name"
-        );
-
-        Assert.assertTrue(
-                alertText.contains("Coverage:"),
-                "Alert should contain coverage"
-        );
 
         System.out.println("Policy Details Alert:");
         System.out.println(alertText);
 
+        Assert.assertTrue(
+            alertText.contains("INS-TEST-101"),
+            "Policy number should appear in alert"
+        );
+
+        Assert.assertTrue(
+            alertText.contains("Test Health Policy"),
+            "Policy name should appear in alert"
+        );
+
         alert.accept();
 
-        System.out.println(
-                "View Policy Details Test PASSED"
-        );
+        System.out.println("View Policy Details Test PASSED");
     }
 
-    // Test 5: Verify navigation links
-
-    @Test
-    public void verifyMyPoliciesNavigationLinks() {
-
-        String[] links = {
-                "Dashboard",
-                "My Policies",
-                "Health Insurance",
-                "Vehicle Insurance",
-                "Premium Calculator",
-                "My Claims",
-                "Payments",
-                "My Profile"
-        };
-
-        for (String linkText : links) {
-
-            WebElement link = driver.findElement(
-                    By.xpath(
-                            "//nav[contains(@class,'policies-nav')]//a[contains(normalize-space(.),'"
-                                    + linkText + "')]"
-                    )
-            );
-
-            Assert.assertTrue(
-                    link.isDisplayed(),
-                    linkText + " navigation link should be displayed"
-            );
-
-            System.out.println(
-                    linkText + " navigation link verified"
-            );
-        }
-
-        System.out.println(
-                "My Policies Navigation Test PASSED"
-        );
-    }
-
+    // Close browser after every test
     @AfterMethod
     public void tearDown() {
 

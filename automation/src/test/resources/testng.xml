@@ -1,0 +1,15 @@
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="InsurePro Automation Suite">
+
+    <listeners>
+        <listener class-name="com.insurepro.tests.TestScreenshotListener"/>
+    </listeners>
+
+    <test name="InsurePro All Tests">
+        <packages>
+            <package name="com.insurepro.tests"/>
+        </packages>
+    </test>
+
+</suite>

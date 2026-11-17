@@ -18,7 +18,7 @@ public class PremiumCalculatorTest {
 
     WebDriver driver;
     WebDriverWait wait;
-String baseUrl = "http://localhost:5176";
+String baseUrl = "http://localhost:5175";
 
     @BeforeMethod
     public void setUp() {
