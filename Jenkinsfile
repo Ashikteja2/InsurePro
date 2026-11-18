@@ -2,18 +2,12 @@
 pipeline {
     agent any
 
-    options {
-        timestamps()
-        skipDefaultCheckout(true)
-        timeout(time: 15, unit: 'MINUTES')
-    }
-
     stages {
 
         stage('Checkout GitHub Code') {
             steps {
-                checkout scm
-                echo 'GitHub code downloaded successfully'
+                git branch: 'main',
+                    url: 'https://github.com/Ashikteja2/InsurePro.git'
             }
         }
 
@@ -30,23 +24,23 @@ pipeline {
             steps {
                 powershell '''
                     $frontendPath = "$env:WORKSPACE\\frontend"
-                    $stdoutLog = "$env:WORKSPACE\\frontend.stdout.log"
-                    $stderrLog = "$env:WORKSPACE\\frontend.stderr.log"
 
                     $process = Start-Process `
                         -FilePath "cmd.exe" `
-                        -ArgumentList '/c npm run preview -- --host 127.0.0.1 --port 5175 --strictPort' `
+                        -ArgumentList "/c npm run dev -- --host 127.0.0.1 --port 5175" `
                         -WorkingDirectory $frontendPath `
                         -PassThru `
                         -WindowStyle Hidden `
-                        -RedirectStandardOutput $stdoutLog `
-                        -RedirectStandardError $stderrLog
+                        -RedirectStandardOutput "$env:WORKSPACE\\frontend.log" `
+                        -RedirectStandardError "$env:WORKSPACE\\frontend-error.log"
 
-                    Set-Content "$env:WORKSPACE\\frontend.pid" $process.Id
+                    $process.Id | Set-Content "$env:WORKSPACE\\frontend.pid"
 
                     $ready = $false
 
-                    for ($i = 0; $i -lt 60; $i++) {
+                    for ($i = 0; $i -lt 30; $i++) {
+                        Start-Sleep -Seconds 2
+
                         try {
                             $response = Invoke-WebRequest `
                                 -Uri "http://127.0.0.1:5175/" `
@@ -59,25 +53,17 @@ pipeline {
                             }
                         }
                         catch {
-                            Start-Sleep -Seconds 2
+                            Write-Host "Waiting for frontend..."
                         }
                     }
 
                     if (-not $ready) {
-                        Write-Host "Frontend output:"
-                        if (Test-Path $stdoutLog) {
-                            Get-Content $stdoutLog
-                        }
-
-                        Write-Host "Frontend errors:"
-                        if (Test-Path $stderrLog) {
-                            Get-Content $stderrLog
-                        }
-
-                        throw "Frontend did not respond with HTTP 200"
+                        Write-Host "Frontend startup failed."
+                        Get-Content "$env:WORKSPACE\\frontend-error.log" -ErrorAction SilentlyContinue
+                        exit 1
                     }
 
-                    Write-Host "InsurePro frontend is running"
+                    Write-Host "InsurePro frontend is running."
                 '''
             }
         }
@@ -94,13 +80,32 @@ pipeline {
     post {
         always {
             script {
-                if (fileExists('frontend.pid')) {
-                    powershell '''
-                        $processId = Get-Content "$env:WORKSPACE\\frontend.pid"
-                        taskkill /PID $processId /T /F 2>$null
-                        Remove-Item "$env:WORKSPACE\\frontend.pid" -Force
+                echo 'Cleaning up frontend process...'
+
+                int cleanupStatus = powershell(
+                    returnStatus: true,
+                    script: '''
+                        $pidFile = "$env:WORKSPACE\\frontend.pid"
+
+                        if (Test-Path $pidFile) {
+                            $frontendProcessId = Get-Content $pidFile
+
+                            if ($frontendProcessId) {
+                                & taskkill.exe /PID $frontendProcessId /T /F 2>$null
+
+                                if ($LASTEXITCODE -ne 0) {
+                                    Write-Host "Frontend process already stopped."
+                                }
+                            }
+
+                            Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
+                        }
+
+                        exit 0
                     '''
-                }
+                )
+
+                echo "Frontend cleanup exit code: ${cleanupStatus}"
             }
 
             junit(
