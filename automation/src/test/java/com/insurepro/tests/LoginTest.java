@@ -18,7 +18,7 @@ public class LoginTest {
     WebDriver driver;
     WebDriverWait wait;
 
-    String baseUrl = "http://localhost:5175";
+    String baseUrl = "http://127.0.0.1:5175";
     String testEmail = "insureprotest20261112014952@gmail.com";
     String testPassword = "Test@12345";
 

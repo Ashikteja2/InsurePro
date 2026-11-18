@@ -13,7 +13,7 @@ public class HomePageTest {
 
     WebDriver driver;
 
-    String baseUrl = "http://localhost:5175";
+    String baseUrl = "http://127.0.0.1:5175";
 
     @BeforeMethod
     public void setUp() {
@@ -36,11 +36,13 @@ public class HomePageTest {
         System.out.println("Website URL: " + currentUrl);
         System.out.println("Page Title: " + pageTitle);
 
+        // Verify the correct website URL
         Assert.assertTrue(
-                currentUrl.contains("localhost:5175"),
+                currentUrl.contains("127.0.0.1:5175"),
                 "InsurePro Home page URL is incorrect"
         );
 
+        // Verify that home page content is displayed
         Assert.assertFalse(
                 pageContent.trim().isEmpty(),
                 "Home page content is empty"
